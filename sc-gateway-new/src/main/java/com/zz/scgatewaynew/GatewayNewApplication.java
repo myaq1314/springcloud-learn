@@ -200,7 +200,7 @@ public class GatewayNewApplication {
      * 支持网关FilteringWebHandler的适配器是{@link org.springframework.web.reactive.result.SimpleHandlerAdapter}，
      * 执行 {@link org.springframework.cloud.gateway.handler.FilteringWebHandler}.handle。
      * 这里会将所有的 GlobalFilter和 Route中的GatewayFilter合并排序。然后执行 DefaultGatewayFilterChain 调用链的filter方法。
-     * 所以所有的Filter最后都必须调用chain.filter来继续调用链。
+     * 所以所有的Filter最后都必须调用chain.filter来继续调用链。这里用的是责任链设计模式
      *
      * 3）转发请求的过滤器一般优先级最低，最后执行。比如：
      * {@link org.springframework.cloud.gateway.filter.NettyRoutingFilter}
