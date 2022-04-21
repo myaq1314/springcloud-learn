@@ -3,7 +3,6 @@ package com.zz.scorder;
 import com.alibaba.cloud.sentinel.feign.SentinelFeign;
 import com.alibaba.csp.sentinel.init.InitExecutor;
 import com.zz.api.common.config.SentinelMybatisConfig;
-import com.zz.sccommon.config.ClientSecurityConfig;
 import feign.Feign;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -21,7 +20,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = {"com.zz.scservice"})
 //@EnableCircuitBreaker
-@ImportAutoConfiguration({ClientSecurityConfig.class, SentinelMybatisConfig.class})
+@ImportAutoConfiguration({SentinelMybatisConfig.class})
 @EnableCaching
 public class ScOrderApplication {
     /**
