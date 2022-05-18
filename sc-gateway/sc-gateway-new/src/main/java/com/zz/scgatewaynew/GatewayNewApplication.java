@@ -1,13 +1,13 @@
 package com.zz.scgatewaynew;
 
-import brave.Tracer;
-import brave.http.HttpServerRequest;
-import brave.propagation.TraceContext;
-import brave.propagation.TraceContextOrSamplingFlags;
-import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
+//import brave.Tracer;
+//import brave.http.HttpServerRequest;
+//import brave.propagation.TraceContext;
+//import brave.propagation.TraceContextOrSamplingFlags;
+//import com.alibaba.csp.sentinel.init.InitExecutor;
+//import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.zz.gateway.dubbo.core.annotation.DubboGatewayScanner;
 import com.zz.scgatewaynew.service.DynamicGatewayService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +17,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContext;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
@@ -49,7 +50,7 @@ import java.util.function.Supplier;
 @RestController
 @EnableDiscoveryClient
 @Slf4j
-@DubboGatewayScanner(basePackages = {"com.zz.api.order"})
+//@DubboGatewayScanner(basePackages = {"com.zz.api.order"})
 public class GatewayNewApplication {
     /**
      * <h1>sentinel控制台交互</h1>
@@ -204,14 +205,19 @@ public class GatewayNewApplication {
      * 这里会将所有的 GlobalFilter和 Route中的GatewayFilter合并排序。然后执行 DefaultGatewayFilterChain 调用链的filter方法。
      * 所以所有的Filter最后都必须调用chain.filter来继续调用链。这里用的是责任链设计模式
      *
+     * <p>GatewayFilter与GlobalFilter执行顺序</p>
+     *
+     *
      * 3）转发请求的过滤器一般优先级最低，最后执行。比如：
-     * {@link org.springframework.cloud.gateway.filter.NettyRoutingFilter}
+     * {@link org.springframework.cloud.gateway.filter.NettyRoutingFilter} 这里会调用exchange.getAttributes().put(CLIENT_RESPONSE_CONN_ATTR, connection);把连接放入缓存，连接中可以拿到响应
      * {@link org.springframework.cloud.gateway.filter.ForwardRoutingFilter}
      * {@link org.springframework.cloud.gateway.filter.WebClientHttpRoutingFilter}
      * {@link org.springframework.cloud.gateway.filter.WebsocketRoutingFilter} 等
      * 这里会执行 NettyRoutingFilter 过滤器执行请求的转发，其中 getResponseTimeout 获取路由超时时间。
-     * 而 {@link org.springframework.cloud.gateway.filter.NettyWriteResponseFilter} 过滤器使用then方法确保在所有过滤器执行完之后再执行其方法，
-     * 其中会调用 response.writeWith 方法解析响应body(ModifyResponseGatewayFilter重新封装的response对象ModifiedServerHttpResponse最后也会调用装饰对象的writeWith方法)，
+     * 而 {@link org.springframework.cloud.gateway.filter.NettyWriteResponseFilter} 获取NettyRoutingFilter中缓存的响应，过滤器使用then方法确保在所有过滤器执行完之后再执行其方法，
+     * 其中会调用 response.writeWith 方法解析响应body(ModifyResponseGatewayFilter重新封装的response对象ModifiedServerHttpResponse最后也会调用装饰对象的writeWith方法)。
+     * NettyWriteResponseFilter 是获取`NettyRoutingFilter`缓存的响应放入到Gateway的响应中
+     *
      * 由{@link org.springframework.http.server.reactive.ReactorServerHttpResponse#writeWith}装饰，
      * 在这里调用 doCommit 会修改 response commit状态。{@link org.springframework.http.server.reactive.AbstractServerHttpResponse#doCommit(Supplier)}
      * 
@@ -221,7 +227,7 @@ public class GatewayNewApplication {
      *
      *
      * 最终会调用{@link ServerHttpResponse#setComplete()} 完成请求响应。
-     *
+     * <p>Webflux都是异步的，因此很多信息都是通过缓存交互的</p>
      *
      * <h1>spring-cloud-sleuth调用链追踪(日志追踪)组件</h1>
      * {@link org.springframework.cloud.sleuth.instrument.web.TraceWebFilter#filter(ServerWebExchange, WebFilterChain)}
@@ -253,6 +259,7 @@ public class GatewayNewApplication {
      *
      */
     public static void main(String[] args) {
+        System.setProperty("nacos.logging.default.config.enabled", "false");
         SpringApplication.run(GatewayNewApplication.class, args);
     }
     /**
@@ -347,12 +354,17 @@ public class GatewayNewApplication {
                         .uri(URI.create("http://localhost:8083/"))
                         .order(-100)
                 )
-                .route("dubbo", p -> p.path("/order/**").uri("dubbo://127.0.0.1"))
+                .route("dubbo", p -> p.path("/order/create").uri("dubbo://127.0.0.1"))
+                .route("fast", p -> p.path("/order/fast").uri("fast://127.0.0.1"))
+                .route("dubbo2", p -> p.path("/traffic/**").uri("dubbo://127.0.0.1"))
                 /*.route(p -> p
                         .readBody(Object.class, b -> true)
                         .uri("https://sina.cn/")
                         .order(100)
                 )*/
+                .route("direct", p -> p.path("/direct").uri("dubbo://172.16.81.10"))
+                .route("http", p -> p.path("/getInfo").uri("http://172.16.80.160:9094"))
+                .route("dispatcher", p -> p.path("/sptsm/dispacher").uri("http://172.16.80.134:8088"))
                 .build();
     }
 

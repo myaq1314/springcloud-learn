@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@ParamAttribute(paramFromType = ParamAttribute.ParamFromType.FROM_QUERYPARAMS)
+@ParamAttribute(paramFromType = ParamFromType.QUERY)
 public @interface FromQueryParams {
 	
 	@AliasFor(annotation = ParamAttribute.class)

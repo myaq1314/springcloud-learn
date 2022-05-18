@@ -20,7 +20,7 @@ import java.util.List;
  * @date 2020-03-26 18:18
  * ************************************
  */
-@Component
+//@Component
 @Slf4j
 public class CustomRouteLocator implements RouteLocator {
     @Autowired

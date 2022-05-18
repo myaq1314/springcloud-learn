@@ -11,6 +11,8 @@
 #当三种方式共同使用时，他们的一个优先级关系是:A < B < C
 server:
   port: 8087
+  tomcat:
+    max-connections: 10000
 spring:
   application:
     name: sc-gateway
@@ -40,8 +42,8 @@ spring:
           enabled: false # 是否开启NacosWatch,向spring boot admin刷新新注册的服务
         watch-delay: 10000 # Nacos watch执行时间间隔默认30s
 sentinel:
-  server-addr: 192.168.5.208:8848
-  namespace: 05740b4d-af5d-4faa-b564-09742445fa2b
+  server-addr: 172.16.80.153:8848
+  namespace: 9820bd7a-1df1-4f20-96fd-a8427bd92fdd
 
 ---
 # profile多环境配置
@@ -49,18 +51,18 @@ sentinel:
 spring:
   profiles: prod
 sentinel:
-  server-addr: 192.168.5.208:8848
+  server-addr: 172.16.80.153:8848
   namespace: fd0e394c-e82d-4bad-bf56-264b4ec89191
 ---
 spring:
   profiles: pressure
 sentinel:
-  server-addr: 192.168.5.208:8848
-  namespace: 6963187d-afaf-433c-ba14-42831641cabd
+  server-addr: 172.16.80.153:8848
+  namespace: 9820bd7a-1df1-4f20-96fd-a8427bd92fdd
 # bootstrap配置加载优先于application配置。
 ---
 spring:
   profiles:
     # maven变量，打包时会被替换成相应的profile。如果需要本地启动，则需要修改为对应的profile
     # 这里的profile激活只用于本地启动，实际线上环境会使用启动参数激活profile
-    active: local #@profileActive@
+    active: pressure #@profileActive@

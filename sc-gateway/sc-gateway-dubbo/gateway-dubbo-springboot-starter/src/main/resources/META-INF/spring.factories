@@ -1,13 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.zz.gateway.dubbo.core.autoconfig.DubboGatewayAutoConfiguration,\
 com.zz.gateway.dubbo.autoconfig.GatewayDubboAutoConfiguration
-# Bootstrap components
-# org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-# com.zz.gateway.support.autoconfig.DubboGatewayBootstrapConfiguration
-# Application Listeners
-org.springframework.context.ApplicationListener=\
-com.zz.gateway.dubbo.core.annotation.DubboGateWayApplicationListener
-# DubboApiWrapperFactory
-com.zz.gateway.dubbo.core.annotation.DubboApiWrapperFactory=\
-com.zz.gateway.dubbo.core.annotation.DefaultDubboApiWrapperFactory
-# DubboGateWayApplicationContextInitializer

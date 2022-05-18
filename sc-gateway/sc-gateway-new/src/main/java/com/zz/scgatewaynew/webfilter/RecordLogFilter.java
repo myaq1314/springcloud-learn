@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
  * @date 2020-10-26 16:29
  * ************************************
  */
-@Component
+//@Component
 @Slf4j
 public class RecordLogFilter implements WebFilter, Ordered {
     
@@ -33,9 +33,9 @@ public class RecordLogFilter implements WebFilter, Ordered {
     
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String ipstr = IPAddrUtils.getClientIp(exchange.getRequest());
-        log.info("client ip:" + ipstr + ", " + GatewayUtils.formatRequest(exchange.getRequest()));
-        log.info("request headers:" + exchange.getRequest().getHeaders().toString());
+        //String ipstr = IPAddrUtils.getClientIp(exchange.getRequest());
+        //log.info("client ip:" + ipstr + ", " + GatewayUtils.formatRequest(exchange.getRequest()));
+        //log.info("request headers:" + exchange.getRequest().getHeaders().toString());
         Object reqBody = exchange.getAttributes().get(GatewayConstants.CACHE_REQUEST_BODY_OBJECT_KEY);
         if(reqBody != null) {
             log.info("request body:" + reqBody);

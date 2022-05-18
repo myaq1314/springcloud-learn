@@ -1,7 +1,9 @@
-package com.zz.gateway.dubbo.common.protocol;
+package com.zz.gateway.client.core.parse;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * ************************************
@@ -13,6 +15,8 @@ import lombok.Data;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DubboApiMetaData {
     private String appName;
 
@@ -29,7 +33,7 @@ public class DubboApiMetaData {
 
     private String methodName;
 
-    private String parameterTypes;
+    private ParamData[] params;
 
     private String version;
 
@@ -49,7 +53,10 @@ public class DubboApiMetaData {
      */
     private boolean enabled;
 
+    /**
+     * path:服务名:组名:版本
+     */
     public String assembleMetaKey() {
-        return String.join(":", this.path, this.version, this.group, this.appName).replaceAll("/", ".").substring(1);
+        return String.join(":", this.path, this.appName, this.group, this.version).substring(1);
     }
 }

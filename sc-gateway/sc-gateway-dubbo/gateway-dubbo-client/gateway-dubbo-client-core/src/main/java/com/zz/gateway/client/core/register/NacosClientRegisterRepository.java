@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 import com.zz.gateway.dubbo.common.config.NacosProperties;
 import com.zz.gateway.dubbo.common.constant.NacosConstants;
 import com.zz.gateway.dubbo.common.exception.BizException;
-import com.zz.gateway.dubbo.common.protocol.DubboApiMetaData;
+import com.zz.gateway.client.core.parse.DubboApiMetaData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.util.StringUtils;

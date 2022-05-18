@@ -1,6 +1,5 @@
 package com.zz.gateway.client.core.annotation;
 
-import com.zz.gateway.client.core.annotation.ParamAttribute.ParamFromType;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.Documented;
@@ -12,7 +11,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@ParamAttribute(paramFromType = ParamFromType.FROM_ATTRIBUTE)
+@ParamAttribute(paramFromType = ParamFromType.ATTRIBUTE)
 public @interface FromAttribute {
 	
 	@AliasFor(annotation = ParamAttribute.class)

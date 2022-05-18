@@ -5,6 +5,7 @@ import com.zz.sccommon.constant.BizConstants;
 import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
 import com.zz.scgatewaynew.respdefine.UpstreamResponse;
 import com.zz.scgatewaynew.util.GatewayUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ public class GlobalResponseFilter implements GlobalFilter, Ordered {
             Long startExecTime = serverWebExchange.getAttribute(BizConstants.REQUEST_START_TIME);
     
             log.info("response body:" + body);
-            log.info("response header:" + serverWebExchange.getResponse().getHeaders().toString());
+            //log.info("response header:" + serverWebExchange.getResponse().getHeaders().toString());
     
             // 缓存responseBody
             serverWebExchange.getAttributes().put(GatewayConstants.CACHE_RESPONSE_BODY, body);

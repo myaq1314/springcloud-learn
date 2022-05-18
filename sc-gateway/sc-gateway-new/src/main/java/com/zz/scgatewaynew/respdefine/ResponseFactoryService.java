@@ -1,9 +1,9 @@
 package com.zz.scgatewaynew.respdefine;
 
+import com.google.common.collect.Lists;
 import com.zz.gateway.common.GatewayConstants;
 import com.zz.scgatewaynew.config.SettingProp;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;

@@ -56,8 +56,4 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <finalName>gateway-dubbo-support</finalName>
-    </build>
-
 </project>

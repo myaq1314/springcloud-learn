@@ -6,6 +6,7 @@
     <springProperty scope="context" name="baseLogDir" source="LOG_BASE" defaultValue="${logDir}"/>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
+            <!-- 打印class和line效率很低 -->
             <pattern>[%-5level] [%X{X-B3-TraceId}] [%X{X-B3-SpanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</pattern>
         </encoder>
     </appender>
@@ -18,8 +19,18 @@
         </rollingPolicy>
         <encoder>
             <charset>UTF-8</charset>
-            <Pattern>[%-5level] [%X{X-B3-TraceId}] [%X{X-B3-SpanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</Pattern>
+            <Pattern>[%-5level] [%X{X-B3-TraceId}] [%X{X-B3-SpanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %logger{36} - %msg%n</Pattern>
         </encoder>
+    </appender>
+
+    <!-- 异步输出 -->
+    <appender name="async-gateway" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 默认，当blocking queue被占用80%以上，AsyncAppender就会丢弃level为 TRACE，DEBUG，INFO的日志事件，如果要保留所有等级的日志，需要设置成0 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="gateway"/>
     </appender>
 
     <!-- profile配置，不能直接在logback.xml文件中使用 -->
@@ -29,13 +40,17 @@
         </root>
     </springProfile>
     <springProfile name="pressure|uat|prod">
-        <logger name="com.zz" level="info" additivity="false">
+        <logger name="com.zz.gateway.dubbo.core.filter.DubboGlobalFilter" level="info" additivity="false">
+            <appender-ref ref="async-gateway"/>
+            <!--<appender-ref ref="CONSOLE"/>-->
+        </logger>
+        <logger name="com.zz.gateway.dubbo.core.filter.DubboGlobalFilterFast" level="info" additivity="false">
             <appender-ref ref="gateway"/>
-            <appender-ref ref="CONSOLE"/>
+            <!--<appender-ref ref="CONSOLE"/>-->
         </logger>
         <root level="info">
-            <appender-ref ref="gateway"/>
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="async-gateway"/>
+            <!--<appender-ref ref="CONSOLE"/>-->
         </root>
     </springProfile>
 </configuration>

@@ -14,6 +14,11 @@ import reactor.core.publisher.MonoOperator;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * ************************************
@@ -51,7 +56,18 @@ public class ReactorTest {
                 .reduce("-", (x, y) -> x + y) // 第一个参数为初始值，方法中的x参数就是前面自定义的值
                 .subscribe(System.out::println);
     }
-    
+
+    @Test
+    public void testFuture() {
+        // fromFuture和then不同一起使用，订阅的then的消息
+        //Mono.fromFuture(CompletableFuture.completedFuture("Hello")).doOnNext(res -> System.out.println("111")).subscribe(System.out::println);
+
+        Flux.defer(() -> {
+            System.out.println("11");
+            return Mono.just("Hemo");
+        }).then(Mono.just("Nih")).subscribe(System.out::println);
+    }
+
     @Test
     public void testFaltMap() {
         GetString impl1 = new GetStringImpl();
@@ -143,6 +159,7 @@ public class ReactorTest {
     @Test
     public void testThen2() {
         Mono.defer(() -> {
+            System.out.println("111");
             if(1 == 1) {
                 return Mono.error(new IllegalArgumentException("1 == 1"));
             }

@@ -1,7 +1,5 @@
 package com.zz.gateway.dubbo.core.handler;
 
-import com.zz.gateway.dubbo.common.protocol.DubboApiMetaData;
-
 /**
  * ************************************
  * create by Intellij IDEA
@@ -10,6 +8,6 @@ import com.zz.gateway.dubbo.common.protocol.DubboApiMetaData;
  * @date 2022-04-21 10:24
  * ************************************
  */
-public interface DubboMetaDataHandler {
-    void doHandler(DubboApiMetaData metaData);
+public interface DubboMetaDataHandler<T> {
+    void doHandler(T metaData);
 }

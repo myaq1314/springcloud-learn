@@ -59,7 +59,7 @@ public class CustomErrorConfig {
         return exceptionHandler;
     }
     
-    @Bean
+    //@Bean
     @Order(-2)
     public UpstreamResponseFailHandler upstreamResponseFailHandler() {
         return new UpstreamResponseFailHandler();

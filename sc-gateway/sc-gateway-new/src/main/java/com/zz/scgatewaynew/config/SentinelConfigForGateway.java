@@ -1,3 +1,4 @@
+/*
 package com.zz.scgatewaynew.config;
 
 import com.alibaba.cloud.sentinel.gateway.scg.SentinelGatewayProperties;
@@ -48,6 +49,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+*/
 /**
  * ************************************
  * create by Intellij IDEA
@@ -59,7 +61,8 @@ import java.util.stream.Collectors;
  * @author Francis.zz
  * @date 2020-03-18 11:52
  * ************************************
- */
+ *//*
+
 @Configuration
 @EnableConfigurationProperties(RouteNacosProperties.class)
 @Slf4j
@@ -87,13 +90,15 @@ public class SentinelConfigForGateway implements InitializingBean {
         return new CustomSentinelGatewayFilter(gatewayProperties.getOrder());
     }
     
-    /**
+    */
+/**
      * 注入限流异常处理
      * 可定制限流响应信息，默认为{@link com.alibaba.csp.sentinel.adapter.gateway.sc.callback.DefaultBlockRequestHandler}
      * 使用spring-cloud-alibaba-sentinel-gateway 集成需要创建SPI文件，指定GatewaySlotChainBuilder才能使限流生效
      *
      * @see {@link com.alibaba.cloud.sentinel.gateway.scg.SentinelSCGAutoConfiguration}#blockRequestHandlerOptional
-     */
+     *//*
+
     @Bean
     public BlockRequestHandler blockRequestHandler() {
         return new BlockRequestHandler() {
@@ -112,7 +117,8 @@ public class SentinelConfigForGateway implements InitializingBean {
         };
     }
     
-    /**
+    */
+/**
      * 网关限流动态规则转换，sentinel-console配置并存储在nacos， 配置参考
      * <pre>
      * [
@@ -138,7 +144,8 @@ public class SentinelConfigForGateway implements InitializingBean {
      * </code>
      * @see {@link com.alibaba.cloud.sentinel.custom.SentinelDataSourceHandler}
      * @see {@link com.alibaba.csp.sentinel.adapter.gateway.common.command.UpdateGatewayRuleCommandHandler} sentinel-client接收处理动态Flow rule实现
-     */
+     *//*
+
     @Bean("sentinel-gatewayFlowDecoder")
     public Converter<String, Set<GatewayFlowRule>> gatewayFlowDecoder() {
         return s -> {
@@ -150,7 +157,8 @@ public class SentinelConfigForGateway implements InitializingBean {
         };
     }
     
-    /**
+    */
+/**
      * API分组动态配置参考
      * <pre>
      * [
@@ -167,7 +175,8 @@ public class SentinelConfigForGateway implements InitializingBean {
      * 存储实体类：ApiDefinitionEntity
      * beanName必须使用“sentinel-”开头
      * 转换参考：{@link com.alibaba.csp.sentinel.adapter.gateway.common.command.UpdateGatewayApiDefinitionGroupCommandHandler#parseJson}
-     */
+     *//*
+
     @Bean("sentinel-apiDefinitionDecoder")
     public Converter<String, Set<ApiDefinition>> apiDefinitionDecoder() {
         return s -> {
@@ -225,3 +234,4 @@ public class SentinelConfigForGateway implements InitializingBean {
         });
     }
 }
+*/

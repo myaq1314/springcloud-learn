@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 应该打印到控制台的内部 Log4j 日志事件的级别，可设置的值有 trace、debug、info、warn、error 和 fatal，
+    Log4j 将会打印出内部初始化等事件的详细信息（在发现配置文件之后）。monitorInterval ：检查配置文件是否有更新的间隔秒数 -->
+<Configuration status="error">
+    <!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+
+    <!--变量配置-->
+    <Properties>
+        <!-- 格式化输出：%date 表示日期，%thread 表示线程名，%-5level：级别从左显示 5 个字符宽度 %msg：日志消息，%n 是换行符-->
+        <!-- %logger{36} 表示 Logger 名字最长 36 个字符 -->
+        <Property name="LOG_PATTERN" value="[%level] [%X{X-B3-TraceId}] [%X{X-B3-SpanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %logger{36} - %msg%n" />
+        <!-- class和line很耗时 -->
+        <Property name="console_patter">[%-5level] [%X{X-B3-TraceId}] [%X{X-B3-SpanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</Property>
+        <!-- 定义日志存储的路径 -->
+        <Property name="appName">${spring:spring.application.name}</Property>
+        <Property name="FILE_PATH" value="/app/biz_logs/${appName}/" />
+    </Properties>
+
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <!--输出日志的格式-->
+            <PatternLayout pattern="${console_patter}" charset="UTF-8"/>
+        </Console>
+        <!-- filePattern可以设置为xxx.gz归档 -->
+        <RollingFile name="gateway" fileName="${FILE_PATH}/${appName}.log" filePattern="${FILE_PATH}/${appName}/${appName}.log-%d{yyyy-MM-dd}_%i" append="true">
+            <PatternLayout pattern="${LOG_PATTERN}" charset="UTF-8"/>
+            <Policies>
+                <!-- 每天滚动1次 -->
+                <CronTriggeringPolicy schedule="0 0 0 * * ?"/>
+                <SizeBasedTriggeringPolicy size="1024MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy 属性如不设置，则默认为最多同一文件夹下当天 7 个文件后开始覆盖-->
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <AsyncLogger name="com" level="info" additivity="false">
+            <appender-ref ref="gateway"/>
+        </AsyncLogger>
+        <AsyncRoot level="info">
+            <AppenderRef ref="gateway"/>
+        </AsyncRoot>
+    </Loggers>
+</Configuration>

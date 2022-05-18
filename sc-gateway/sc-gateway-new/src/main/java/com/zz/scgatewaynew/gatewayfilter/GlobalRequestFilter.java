@@ -47,12 +47,7 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         // 流控标识，通过请求body中是否有transactionid判断是否需要合并请求次数
         String flowCtrlFlag = "true";
-        long startTime = System.currentTimeMillis();
         ServerHttpRequest request = exchange.getRequest();
-        Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-        if(route != null) {
-            log.info(String.format("匹配到的路由信息：{id:%s, routeUrl:%s}", route.getId(), route.getUri()));
-        }
         /**
          * 获取body的方法参考{@link org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory}
          * 或者{@link ReadBodyPredicateFactory}
@@ -77,8 +72,12 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
                 }
             }
         }
-        
+        long startTime = System.currentTimeMillis();
         exchange.getAttributes().put(BizConstants.REQUEST_START_TIME, startTime);
+        Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+        if(route != null) {
+            log.info(String.format("匹配到的路由信息：{id:%s, routeUrl:%s}", route.getId(), route.getUri()));
+        }
         // 将网关的日志追踪ID作为事务ID放入请求头传递到上游服务，上游服务优先会从请求体中获取事务ID，没有则取请求头的事务id
         String spSessionId = request.getHeaders().getFirst(GatewayConstants.TRACE_ID_NAME);
         spSessionId = StringUtils.isEmpty(spSessionId) ? StringUtils.isEmpty(transactionid) ? UuidUtils.generateUuid() : transactionid : spSessionId;
@@ -96,13 +95,13 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
     
         // 使用chain.filter继续Filter调用链
         return chain.filter(exchange.mutate().request(modifyRequestBuilder.build()).build())
-                .then(Mono.defer(() ->
+                /*.then(Mono.defer(() ->
                 {
                     // then是在调用链中所有的Filter都执行完之后再执行的，所以这里也能获取到路由服务的响应信息
                     // 最后执行的filter的then方法执行优先级越高（比较其他filter的then）
                     log.info("-- record gateway response datestamp");
                     return Mono.empty();
-                }));
+                }))*/;
     }
     
     /**

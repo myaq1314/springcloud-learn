@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
  * @date 2020-09-22 14:32
  * ************************************
  */
-@Component
+//@Component
 @Slf4j
 public class CheckResponseStatusFilter implements GlobalFilter, Ordered {
     @Override

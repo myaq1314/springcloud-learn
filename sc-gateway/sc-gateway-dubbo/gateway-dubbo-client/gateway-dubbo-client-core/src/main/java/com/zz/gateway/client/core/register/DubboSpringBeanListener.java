@@ -2,7 +2,8 @@ package com.zz.gateway.client.core.register;
 
 import com.zz.gateway.client.core.annotation.GatewayDubboClient;
 import com.zz.gateway.client.core.common.GatewayDubboClientConfig;
-import com.zz.gateway.dubbo.common.protocol.DubboApiMetaData;
+import com.zz.gateway.client.core.parse.DubboApiMetaData;
+import com.zz.gateway.client.core.parse.MetaDataParseUtil;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.config.spring.ServiceBean;
@@ -12,11 +13,9 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 /**
  * ************************************
@@ -68,19 +67,18 @@ public class DubboSpringBeanListener implements ApplicationListener<ContextRefre
     private DubboApiMetaData buildMetaDataDTO(final ServiceBean serviceBean, final GatewayDubboClient gatewayDubboClient,
                                               final Method method) {
         String appName = buildAppName(serviceBean);
+        // todo 不能拿到value的值，只能拿到path的
         String path = gatewayDubboClient.path();
         String desc = gatewayDubboClient.desc();
         String serviceName = serviceBean.getInterface();
         String methodName = method.getName();
-        Class<?>[] parameterTypesClazz = method.getParameterTypes();
-        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName).collect(Collectors.joining(","));
         return DubboApiMetaData.builder()
                 .appName(appName)
                 .interfaceName(serviceName)
                 .methodName(methodName)
                 .path(path)
                 .pathDesc(desc)
-                .parameterTypes(parameterTypes)
+                .params(MetaDataParseUtil.buildParamMetaData(method))
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .loadBalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : CommonConstants.DEFAULT_LOADBALANCE)
@@ -92,6 +90,7 @@ public class DubboSpringBeanListener implements ApplicationListener<ContextRefre
     }
 
     private String buildAppName(final ServiceBean serviceBean) {
+        // TODO appName不配置会空指针，需要从别处获取
         return StringUtils.isBlank(this.appName) ? serviceBean.getApplication().getName() : this.appName;
     }
 }

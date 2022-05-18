@@ -1,3 +1,4 @@
+/*
 package com.zz.scgatewaynew.config;
 
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
@@ -6,6 +7,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
+*/
 /**
  * ************************************
  * create by Intellij IDEA
@@ -13,13 +15,16 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
  * @author Francis.zz
  * @date 2020-04-28 11:23
  * ************************************
- */
+ *//*
+
 @EnableWebFluxSecurity
 public class ClientSecurityConfig {
-    /**
+    */
+/**
      * 配置文件中的 management.endpoints.web.base-path 属性值
      * 这里只对 web 端点做登录验证
-     */
+     *//*
+
     private final String endpointsBasePath;
     
     public ClientSecurityConfig(WebEndpointProperties webEndpointProperties) {
@@ -44,3 +49,4 @@ public class ClientSecurityConfig {
                 .disable().build();
     }
 }
+*/

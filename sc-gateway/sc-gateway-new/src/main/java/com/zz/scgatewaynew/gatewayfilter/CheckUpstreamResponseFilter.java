@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
  * @date 2020-09-24 16:43
  * ************************************
  */
-@Component
+//@Component
 public class CheckUpstreamResponseFilter implements GlobalFilter, Ordered {
     private final Logger LOG = LoggerFactory.getLogger(getClass());
     

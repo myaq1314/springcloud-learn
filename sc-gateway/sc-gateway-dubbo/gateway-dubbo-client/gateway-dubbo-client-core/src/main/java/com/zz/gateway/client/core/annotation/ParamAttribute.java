@@ -25,10 +25,7 @@ public @interface ParamAttribute {
 	
 	ParamFormat paramFormat() default ParamFormat.MAP;
 	
-	public enum ParamFormat {
+	enum ParamFormat {
 		MAP, JSON
-	}
-	public enum ParamFromType {
-		FROM_BODY, FROM_COOKIE, FROM_HEADER, FROM_PATH, FROM_ATTRIBUTE, FROM_QUERYPARAMS;
 	}
 }
