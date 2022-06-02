@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.csp.sentinel.dashboard.rule.apollo;
+package com.alibaba.csp.sentinel.dashboard.config;
 
-/**
- * @author hantianwei@gmail.com
- * @since 1.5.0
- */
-public final class ApolloConfigUtil {
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-    public static final String FLOW_DATA_ID_POSTFIX = "-flow-rules";
+@ConfigurationProperties(prefix = "auth")
+public class AuthProperties {
 
-    private ApolloConfigUtil() {
+    private boolean enabled = true;
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public static String getFlowDataId(String appName) {
-        return String.format("%s%s", appName, FLOW_DATA_ID_POSTFIX);
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
+
 }

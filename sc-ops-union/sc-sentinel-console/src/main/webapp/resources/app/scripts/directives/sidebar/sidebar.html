@@ -77,11 +77,11 @@
 
           <li ui-sref-active="active" ng-if="!entry.isGateway">
             <a ui-sref="dashboard.degrade({app: entry.app})">
-              <i class="glyphicon glyphicon-flash"></i>&nbsp;&nbsp;降级规则-本地只读</a>
+              <i class="glyphicon glyphicon-flash"></i>&nbsp;&nbsp;熔断规则-本地只读</a>
           </li>
           <li ui-sref-active="active" ng-if="!entry.isGateway">
             <a ui-sref="dashboard.degradeNacos({app: entry.app})">
-              <i class="glyphicon glyphicon-flash"></i>&nbsp;&nbsp;降级规则-nacos</a>
+              <i class="glyphicon glyphicon-flash"></i>&nbsp;&nbsp;熔断规则-nacos</a>
           </li>
           <li ui-sref-active="active" ng-if="!entry.isGateway">
             <a ui-sref="dashboard.paramFlow({app: entry.app})">

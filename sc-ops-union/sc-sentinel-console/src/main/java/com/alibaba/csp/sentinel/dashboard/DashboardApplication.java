@@ -68,22 +68,22 @@ public class DashboardApplication {
      */
     @PostConstruct
     private void init() {
-        if (StringUtils.isEmpty(System.getProperty(LogBase.LOG_DIR))
+        if (!StringUtils.hasText(System.getProperty(LogBase.LOG_DIR))
                 && StringUtils.hasText(baseLogDir)) {
             System.setProperty(LogBase.LOG_DIR, baseLogDir);
         }
     
-        if (StringUtils.isEmpty(System.getProperty(SentinelConfig.APP_NAME_PROP_KEY))
+        if (!StringUtils.hasText(System.getProperty(SentinelConfig.APP_NAME_PROP_KEY))
                 && StringUtils.hasText(projectName)) {
             System.setProperty(SentinelConfig.APP_NAME_PROP_KEY, projectName);
         }
     
-        if (StringUtils.isEmpty(System.getProperty(TransportConfig.CONSOLE_SERVER))
+        if (!StringUtils.hasText(System.getProperty(TransportConfig.CONSOLE_SERVER))
                 && StringUtils.hasText(consoleServer)) {
             System.setProperty(TransportConfig.CONSOLE_SERVER, consoleServer);
         }
     
-        if (StringUtils.isEmpty(System.getProperty(TransportConfig.SERVER_PORT))
+        if (!StringUtils.hasText(System.getProperty(TransportConfig.SERVER_PORT))
                 && StringUtils.hasText(serverPort)) {
             System.setProperty(TransportConfig.SERVER_PORT, serverPort);
         }

@@ -68,12 +68,12 @@ const JS_APP = [
 ];
 
 gulp.task('lib', function () {
-    gulp.src(JS_LIBS)
-        .pipe(plugins.concat('app.vendor.js'))
-        //.pipe(gulp.dest(app.devPath + 'js'))
-        .pipe(plugins.uglify())
-        .pipe(gulp.dest(app.prdPath + 'js'))
-        .pipe(plugins.connect.reload());
+  gulp.src(JS_LIBS)
+    .pipe(plugins.concat('app.vendor.js'))
+    .pipe(gulp.dest(app.devPath + 'js'))
+    .pipe(plugins.uglify())
+    .pipe(gulp.dest(app.prdPath + 'js'))
+    .pipe(plugins.connect.reload());
 });
 
 /*
@@ -81,12 +81,12 @@ gulp.task('lib', function () {
 * 在src下创建style文件夹，里面存放less文件。
 */
 gulp.task('css', function () {
-    gulp.src(CSS_APP)
-        .pipe(plugins.concat('app.css'))
-        //.pipe(gulp.dest(app.devPath + 'css'))
-        .pipe(plugins.cssmin())
-        .pipe(gulp.dest(app.prdPath + 'css'))
-        .pipe(plugins.connect.reload());
+  gulp.src(CSS_APP)
+    .pipe(plugins.concat('app.css'))
+    .pipe(gulp.dest(app.devPath + 'css'))
+    .pipe(plugins.cssmin())
+    .pipe(gulp.dest(app.prdPath + 'css'))
+    .pipe(plugins.connect.reload());
 });
 
 /*
@@ -94,12 +94,12 @@ gulp.task('css', function () {
 * 在src目录下创建script文件夹，里面存放所有的js文件
 */
 gulp.task('js', function () {
-    gulp.src(JS_APP)
-        .pipe(plugins.concat('app.js'))
-        //.pipe(gulp.dest(app.devPath + 'js'))
-        .pipe(plugins.uglify())
-        .pipe(gulp.dest(app.prdPath + 'js'))
-        .pipe(plugins.connect.reload());
+  gulp.src(JS_APP)
+    .pipe(plugins.concat('app.js'))
+    .pipe(gulp.dest(app.devPath + 'js'))
+    .pipe(plugins.uglify())
+    .pipe(gulp.dest(app.prdPath + 'js'))
+    .pipe(plugins.connect.reload());
 });
 
 /*

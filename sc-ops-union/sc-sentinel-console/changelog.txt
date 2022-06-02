@@ -41,7 +41,6 @@
     new file:   java/com/alibaba/csp/sentinel/dashboard/config/InitialConfig.java
     new file:   java/com/alibaba/csp/sentinel/dashboard/repository/metric/InfluxDbMetricsRepository.java
 
-	renamed:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/FlowRuleNacosPublisher.java -> java/com/alibaba/csp/sentinel/dashboard/rule/nacos/GatewayFlowRuleNacosPublisher.java
 	new file:   app/scripts/controllers/degrade_nacos.js
 	new file:   app/scripts/controllers/gateway/api_nacos.js
 	new file:   app/scripts/controllers/gateway/flow_nacos.js
@@ -61,9 +60,6 @@
 	deleted:    dist/css/app.css
 	deleted:    dist/js/app.js
 	deleted:    dist/js/app.vendor.js
-	deleted:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/FlowRuleNacosProvider.java
-	deleted:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/NacosConfig.java
-	deleted:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/NacosConfigUtil.java
 
     modified:   pom.xml
 	modified:   java/com/alibaba/csp/sentinel/dashboard/controller/gateway/GatewayApiNacosController.java

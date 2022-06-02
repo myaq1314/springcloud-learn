@@ -15,10 +15,10 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <!-- alibaba sentinel使用的springboot版本，跟随github源码更新 -->
-        <spring.boot.version>2.0.5.RELEASE</spring.boot.version>
+        <spring.boot.version>2.5.12</spring.boot.version>
         <curator.version>4.0.1</curator.version>
         <!-- sentinel源码版本，这里更新的同时还要更新src源码文件到相应的版本 -->
-        <sentinel.current.version>1.8.0</sentinel.current.version>
+        <sentinel.current.version>1.8.4</sentinel.current.version>
         <influxdb-client.version>1.9.0</influxdb-client.version>
     </properties>
 
@@ -39,6 +39,12 @@
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-web-servlet</artifactId>
             <version>${sentinel.current.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.alibaba.csp</groupId>
+                    <artifactId>sentinel-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.alibaba.csp</groupId>
@@ -49,11 +55,23 @@
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-parameter-flow-control</artifactId>
             <version>${sentinel.current.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.alibaba.csp</groupId>
+                    <artifactId>sentinel-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-api-gateway-adapter-common</artifactId>
             <version>${sentinel.current.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.alibaba.csp</groupId>
+                    <artifactId>sentinel-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
