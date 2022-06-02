@@ -15,23 +15,23 @@
  */
 package com.alibaba.csp.sentinel.slots.statistic;
 
+import java.util.Collection;
+
+import com.alibaba.csp.sentinel.node.Node;
+import com.alibaba.csp.sentinel.slotchain.ProcessorSlotEntryCallback;
+import com.alibaba.csp.sentinel.slotchain.ProcessorSlotExitCallback;
+import com.alibaba.csp.sentinel.slots.block.UpstreamRespException;
+import com.alibaba.csp.sentinel.slots.block.flow.PriorityWaitException;
+import com.alibaba.csp.sentinel.spi.Spi;
+import com.alibaba.csp.sentinel.util.TimeUtil;
 import com.alibaba.csp.sentinel.Constants;
 import com.alibaba.csp.sentinel.EntryType;
 import com.alibaba.csp.sentinel.context.Context;
 import com.alibaba.csp.sentinel.node.ClusterNode;
 import com.alibaba.csp.sentinel.node.DefaultNode;
-import com.alibaba.csp.sentinel.node.Node;
 import com.alibaba.csp.sentinel.slotchain.AbstractLinkedProcessorSlot;
-import com.alibaba.csp.sentinel.slotchain.ProcessorSlotEntryCallback;
-import com.alibaba.csp.sentinel.slotchain.ProcessorSlotExitCallback;
 import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
-import com.alibaba.csp.sentinel.slots.block.UpstreamRespException;
-import com.alibaba.csp.sentinel.slots.block.flow.PriorityWaitException;
-import com.alibaba.csp.sentinel.spi.SpiOrder;
-import com.alibaba.csp.sentinel.util.TimeUtil;
-
-import java.util.Collection;
 
 /**
  * <p>
@@ -49,7 +49,7 @@ import java.util.Collection;
  * @author jialiang.linjl
  * @author Eric Zhao
  */
-@SpiOrder(-7000)
+@Spi(order = Constants.ORDER_STATISTIC_SLOT)
 public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
 
     @Override
@@ -136,10 +136,10 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
             Throwable error = context.getCurEntry().getError();
 
             // Record response time and success count.
-            recordCompleteFor(node, count, rt, error, resourceWrapper.getName());
-            recordCompleteFor(context.getCurEntry().getOriginNode(), count, rt, error, resourceWrapper.getName());
+            recordCompleteFor(node, count, rt, error);
+            recordCompleteFor(context.getCurEntry().getOriginNode(), count, rt, error);
             if (resourceWrapper.getEntryType() == EntryType.IN) {
-                recordCompleteFor(Constants.ENTRY_NODE, count, rt, error, resourceWrapper.getName());
+                recordCompleteFor(Constants.ENTRY_NODE, count, rt, error);
             }
         }
 
@@ -149,7 +149,8 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
             handler.onExit(context, resourceWrapper, count, args);
         }
 
-        fireExit(context, resourceWrapper, count);
+        // fix bug https://github.com/alibaba/Sentinel/issues/2374
+        fireExit(context, resourceWrapper, count, args);
     }
 
     private void recordCompleteFor(Node node, int batchCount, long rt, Throwable error) {

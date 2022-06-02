@@ -13,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.csp.sentinel.slots.statistic.base;
-
-import java.util.concurrent.atomic.LongAdder;
+package com.alibaba.csp.sentinel.spi;
 
 /**
- * @author Eric Zhao
+ * Error thrown when something goes wrong while loading Provider via {@link SpiLoader}.
+ *
+ * @author cdfive
  */
-public class UnaryLeapArray extends LeapArray<LongAdder> {
+public class SpiLoaderException extends RuntimeException {
 
-    public UnaryLeapArray(int sampleCount, int intervalInMs) {
-        super(sampleCount, intervalInMs);
+    public SpiLoaderException() {
+        super();
     }
 
-    @Override
-    public LongAdder newEmptyBucket(long time) {
-        return new LongAdder();
+    public SpiLoaderException(String message) {
+        super(message);
     }
 
-    @Override
-    protected WindowWrap<LongAdder> resetWindowTo(WindowWrap<LongAdder> windowWrap, long startTime) {
-        windowWrap.resetTo(startTime);
-        windowWrap.value().reset();
-        return windowWrap;
+    public SpiLoaderException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

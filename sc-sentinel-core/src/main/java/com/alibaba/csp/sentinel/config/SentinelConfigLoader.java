@@ -16,12 +16,16 @@
 package com.alibaba.csp.sentinel.config;
 
 import com.alibaba.csp.sentinel.log.RecordLog;
+import com.alibaba.csp.sentinel.util.AppNameUtil;
 import com.alibaba.csp.sentinel.util.ConfigUtil;
 import com.alibaba.csp.sentinel.util.StringUtil;
 
+import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArraySet;
+
+import static com.alibaba.csp.sentinel.util.ConfigUtil.addSeparator;
 
 /**
  * <p>The loader that responsible for loading Sentinel common configurations.</p>
@@ -58,7 +62,7 @@ public final class SentinelConfigLoader {
 
         Properties p = ConfigUtil.loadProperties(fileName);
         if (p != null && !p.isEmpty()) {
-            RecordLog.info("[SentinelConfigLoader] Loading Sentinel config from " + fileName);
+            RecordLog.info("[SentinelConfigLoader] Loading Sentinel config from {}", fileName);
             properties.putAll(p);
         }
 

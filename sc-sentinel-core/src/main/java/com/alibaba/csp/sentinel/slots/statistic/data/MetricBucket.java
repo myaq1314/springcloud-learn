@@ -17,9 +17,9 @@ package com.alibaba.csp.sentinel.slots.statistic.data;
 
 import com.alibaba.csp.sentinel.config.SentinelConfig;
 import com.alibaba.csp.sentinel.slots.statistic.MetricEvent;
-import com.alibaba.csp.sentinel.slots.statistic.base.LongAdder;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Represents metrics data in a period of time span.

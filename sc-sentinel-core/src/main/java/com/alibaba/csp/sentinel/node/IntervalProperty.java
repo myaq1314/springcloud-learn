@@ -71,7 +71,7 @@ public class IntervalProperty {
             INTERVAL = newInterval;
             ClusterBuilderSlot.resetClusterNodes();
         }
-        RecordLog.info("[IntervalProperty] INTERVAL updated to: " + INTERVAL);
+        RecordLog.info("[IntervalProperty] INTERVAL updated to: {}", INTERVAL);
     }
     
     public static void saveResourceInterval(String resourceName, int interval, int slowRt) {

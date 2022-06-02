@@ -15,6 +15,7 @@
  */
 package com.alibaba.csp.sentinel.slots.clusterbuilder;
 
+import com.alibaba.csp.sentinel.Constants;
 import com.alibaba.csp.sentinel.EntryType;
 import com.alibaba.csp.sentinel.context.Context;
 import com.alibaba.csp.sentinel.context.ContextUtil;
@@ -28,7 +29,7 @@ import com.alibaba.csp.sentinel.slotchain.AbstractLinkedProcessorSlot;
 import com.alibaba.csp.sentinel.slotchain.ProcessorSlotChain;
 import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.alibaba.csp.sentinel.slotchain.StringResourceWrapper;
-import com.alibaba.csp.sentinel.spi.SpiOrder;
+import com.alibaba.csp.sentinel.spi.Spi;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +47,7 @@ import java.util.Map;
  *
  * @author jialiang.linjl
  */
-@SpiOrder(-9000)
+@Spi(isSingleton = false, order = Constants.ORDER_CLUSTER_BUILDER_SLOT)
 public class ClusterBuilderSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
 
     /**
