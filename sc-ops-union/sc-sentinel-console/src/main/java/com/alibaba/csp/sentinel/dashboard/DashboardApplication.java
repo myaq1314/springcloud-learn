@@ -44,6 +44,7 @@ public class DashboardApplication {
      * triggerSentinelInit初始化InitFunc接口的实现类
      */
     public static void main(String[] args) {
+        System.setProperty("nacos.logging.default.config.enabled", "false");
         SpringApplication.run(DashboardApplication.class, args);
     }
 

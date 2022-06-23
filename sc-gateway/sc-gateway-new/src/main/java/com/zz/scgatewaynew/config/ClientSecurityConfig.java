@@ -12,10 +12,12 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
  * ************************************
  * create by Intellij IDEA
  * spring cloud gateway网关要使用@EnableWebFluxSecurity配置Security
+ *
  * @author Francis.zz
  * @date 2020-04-28 11:23
  * ************************************
  *//*
+
 
 @EnableWebFluxSecurity
 public class ClientSecurityConfig {
@@ -26,11 +28,11 @@ public class ClientSecurityConfig {
      *//*
 
     private final String endpointsBasePath;
-    
+
     public ClientSecurityConfig(WebEndpointProperties webEndpointProperties) {
         this.endpointsBasePath = webEndpointProperties.getBasePath();
     }
-    
+
     @Bean
     protected SecurityWebFilterChain webFluxSecurityFilterChain(ServerHttpSecurity http) throws Exception {
         return http.authorizeExchange()

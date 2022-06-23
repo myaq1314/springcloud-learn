@@ -69,11 +69,46 @@ public class ReactorTest {
     }
 
     @Test
+    public void testFunction() {
+        Function<String, Flux<String>> fun = (req) -> {
+            System.out.println(req);
+            return Flux.defer(() -> {
+                System.out.println("custom exec...");
+                return Flux.fromIterable(Lists.newArrayList("hello", "world"));
+            });
+        };
+
+        fun.apply("Hello").subscribe(System.out::println);
+    }
+
+    @Test
+    public void testGetType() {
+        Function<String, Flux<String>> fun = (req) -> {
+            System.out.println(req);
+            return Flux.defer(() -> {
+                System.out.println("custom exec...");
+                return Flux.fromIterable(Lists.newArrayList("hello", "world"));
+            });
+        };
+    }
+
+    private <V, R> R doSomeThing(V arg, Function<V, R> fun) {
+        System.out.println("");
+        return fun.apply(arg);
+    }
+
+    @Test
     public void testFaltMap() {
-        GetString impl1 = new GetStringImpl();
+        GetString impl1 = () -> {
+            System.out.println("impl1 exec...");
+            return Flux.fromIterable(Lists.newArrayList("1", "2", "3"));
+        };
         GetString impl2 = () -> {
             System.out.println("impl2 exec...");
-            return Flux.fromIterable(Lists.newArrayList("hello", "world"));
+            return Flux.defer(() -> {
+                System.out.println("custom exec...");
+                return Flux.fromIterable(Lists.newArrayList("hello", "world"));
+            });
         };
         
         // 将GetString 接口的两个实现类初始化为流数据
@@ -81,7 +116,28 @@ public class ReactorTest {
                 impl1, impl2
         ));
         
+        // map返回的是一个普通对象，map中执行后的返回对象直接丢入原始流
+        /**
+         * impl1 exec...
+         * FluxIterable
+         * impl2 exec...
+         * FluxDefer
+         */
+        delegates.map(GetString::test)
+                .subscribe(System.out::println);
+
+        // flatMap 返回的是一个流对象，flatMap的返回替换为新的流
         // 调用两个实现类的test方法，将输出结果合并. 如果不调用subscribe，那么就不会执行流中GetString的实现类的方法
+        /**
+         * impl1 exec...
+         * 1
+         * 2
+         * 3
+         * impl2 exec...
+         * custom exec...
+         * hello
+         * world
+         */
         delegates.flatMap(GetString::test)
                 .subscribe(System.out::println);
     }
@@ -94,6 +150,19 @@ public class ReactorTest {
         }).switchIfEmpty(Mono.just("2")).flatMap(r -> {
             System.out.println("res:" + r);
             return Mono.just("3");
+        }).subscribe(System.out::println);
+    }
+
+    @Test
+    public void testMapAndFlatMap() {
+        Mono<String> obj = Mono.just("hello");
+        obj.map(r -> {
+            System.out.println(r);
+            return "1";
+        }).flatMap(r -> {
+            System.out.println(r);
+            // 必须返回
+            return Mono.just("2");
         }).subscribe(System.out::println);
     }
     

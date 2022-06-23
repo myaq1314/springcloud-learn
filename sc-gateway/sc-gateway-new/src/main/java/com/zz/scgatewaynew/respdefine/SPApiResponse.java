@@ -2,11 +2,11 @@ package com.zz.scgatewaynew.respdefine;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.zz.gateway.common.util.GatewayUtil;
 import com.zz.sccommon.constant.ApiConstants;
 import com.zz.sccommon.exception.ErrorCode;
 import com.zz.sccommon.util.sign.RSASignatureUtil;
 import com.zz.sccommon.util.sign.SignatureUtils;
-import com.zz.scgatewaynew.util.GatewayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -37,7 +37,7 @@ public class SPApiResponse implements UpstreamResponse {
         resp.put(ApiConstants.SP_RESP_CODE, code);
         resp.put(ApiConstants.SP_RESP_MSG, msg);
     
-        boolean flag = GatewayUtils.wrapRespHeaderWithSign(exchange, resp, privateKeyStr);
+        boolean flag = GatewayUtil.wrapRespHeaderWithSign(exchange, resp, privateKeyStr);
         
         if(!flag) {
             // 签名

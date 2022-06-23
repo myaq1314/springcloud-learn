@@ -1,5 +1,7 @@
 package com.zz.gateway.dubbo.core.client;
 
+import com.zz.gateway.client.core.parse.DubboApiMetaData;
+import javafx.util.Pair;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -12,5 +14,5 @@ import reactor.core.publisher.Mono;
  * ************************************
  */
 public interface DubboProxyService {
-    Mono<Object> invoke(ServerWebExchange exchange, String path, Object[] args);
+    Mono<Object> invoke(ServerWebExchange exchange, DubboApiMetaData metaData, Pair<String[], Object[]> args);
 }

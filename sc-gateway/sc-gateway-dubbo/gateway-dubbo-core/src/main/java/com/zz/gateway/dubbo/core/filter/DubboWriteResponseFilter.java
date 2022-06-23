@@ -28,7 +28,6 @@ import java.util.List;
  * ************************************
  */
 @Slf4j
-@Component
 public class DubboWriteResponseFilter implements GlobalFilter, Ordered {
     public static final int WRITE_RESPONSE_FILTER_ORDER = -1;
 

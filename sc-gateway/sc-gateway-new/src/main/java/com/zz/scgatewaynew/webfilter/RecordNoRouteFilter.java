@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono;
  * @date 2020-10-26 16:29
  * ************************************
  */
-//@Component
+@Component
 @Slf4j
 public class RecordNoRouteFilter implements WebFilter, Ordered {
     

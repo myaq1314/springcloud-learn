@@ -40,8 +40,9 @@ angular
       },
       'request' : function(config) {
         // Resolved resource loading failure after configuring ContextPath
-    	  var baseUrl = $window.document.getElementsByTagName('base')[0].href;
-    	  config.url = baseUrl + config.url;
+        // 加上这个配置会404
+    	  // var baseUrl = $window.document.getElementsByTagName('base')[0].href;
+    	  // config.url = baseUrl + config.url;
         return config;
       },
       'requestError' : function(config){

@@ -1,5 +1,7 @@
 package com.zz.gateway.dubbo.core.handler;
 
+import java.util.Map;
+
 /**
  * ************************************
  * create by Intellij IDEA
@@ -9,5 +11,15 @@ package com.zz.gateway.dubbo.core.handler;
  * ************************************
  */
 public interface DubboMetaDataHandler<T> {
-    void doHandler(T metaData);
+    default void registryAll(Map<String, T> metaData) {
+
+    }
+
+    default void registry(String path, T metaData) {
+
+    }
+
+    default void destroy(String path) {
+
+    }
 }

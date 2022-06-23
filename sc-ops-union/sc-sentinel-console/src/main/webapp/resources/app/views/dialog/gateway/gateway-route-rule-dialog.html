@@ -24,8 +24,8 @@
 					<div class="form-group">
 						<label class="col-sm-2 control-label">URI</label>
 						<div class="col-sm-9">
-              <input type="text" class="form-control highlight-border" placeholder="转发URI，使用“lb:”开启负载均衡" title="转发URI，使用“lb:”开启负载均衡"
-                     ng-model='currentRoute.uri' />
+              <input type="text" class="form-control highlight-border" placeholder="转发URI，使用“lb:”开启负载均衡；使用“dubbo:”支持转发dubbo服务"
+                     title="转发URI，使用“lb:”开启负载均衡" ng-model='currentRoute.uri' />
 						</div>
 					</div>
 
@@ -112,12 +112,6 @@
                   </div>
                 </div>
                 <div class="form-group" >
-                  <label class="col-sm-2 control-label">响应模板</label>
-                  <div class="col-sm-4 control-label">
-                    <select ng-model="currentRoute.predicate.pathRule.respStrategy" ng-init="currentRoute.predicate.pathRule.respStrategy"
-                            ng-options="strategy.val as strategy.desc for strategy in respStrategy" class="form-control" title="异常响应数据格式">
-                    </select>
-                  </div>
                   <label class="col-sm-2 control-label">序号</label>
                   <div class="col-sm-4 control-label">
                     <input type="number" class="form-control highlight-border" placeholder="请输入" ng-model='currentRoute.predicate.pathRule.order' />
@@ -299,7 +293,52 @@
               </fieldset>
             </div>
           </div>
-
+          <div class="form-group">
+            <label class="col-sm-2 control-label">扩展参数</label>
+            <div class="col-sm-9">
+              <div class="form-control highlight-border" align="center" style="padding-top: 0;" title="扩展参数设置">
+                <label class="checkbox-inline" title="多步请求时通过请求头或请求体传递的日志追踪字段">
+                  <input type="checkbox" name="filter" ng-checked="metadataCheckList.traceidParams==true"
+                         ng-model="metadataCheckList.traceidParams" ng-true-value="true" ng-false-value="false"> &nbsp;traceID 字段&nbsp;&nbsp;
+                </label>
+                <label class="checkbox-inline" title="路由异常时网关响应的报文格式">
+                  <input type="checkbox" name="filter" ng-checked="metadataCheckList.respParams==true"
+                         ng-model="metadataCheckList.respParams" ng-true-value="true" ng-false-value="false"> &nbsp;响应模板&nbsp;&nbsp;
+                </label>
+                <label class="checkbox-inline" title="其他参数，JSON格式">
+                  <input type="checkbox" name="filter" ng-checked="metadataCheckList.extParams==true"
+                         ng-model="metadataCheckList.extParams" ng-true-value="true" ng-false-value="false"> &nbsp;其他参数&nbsp;&nbsp;
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group" ng-if="!!metadataCheckList.traceidParams || !!metadataCheckList.respParams || !!metadataCheckList.extParams">
+            <label class="col-sm-2 control-label">扩展参数定义</label>
+            <div class="col-sm-9">
+              <fieldset>
+                <div class="form-group" ng-if="metadataCheckList.traceidParams==true">
+                  <label class="col-sm-3 control-label">traceID 字段</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control highlight-border" placeholder="请输入追踪字段名" ng-model='currentRoute.metadata.traceid' />
+                  </div>
+                </div>
+                <div class="form-group" ng-if="metadataCheckList.respParams==true">
+                  <label class="col-sm-3 control-label">响应模板</label>
+                  <div class="col-sm-9 control-label">
+                    <select ng-model="currentRoute.metadata.respStrategy" ng-init="currentRoute.metadata.respStrategy"
+                            ng-options="strategy.val as strategy.desc for strategy in respStrategy" class="form-control" title="异常响应数据格式">
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group" ng-if="metadataCheckList.extParams==true">
+                  <label class="col-sm-3 control-label">其他参数</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control highlight-border" placeholder="JSON格式" ng-model='currentRoute.metadata.extParams' />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
           <div class="form-group">
             <label class="col-sm-2 control-label">排序</label>
             <div class="col-sm-9">

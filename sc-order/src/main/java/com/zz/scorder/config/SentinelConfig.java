@@ -11,7 +11,6 @@ import com.alibaba.fastjson.TypeReference;
 import com.zz.api.common.nacos.entity.DegradeRuleEntity;
 import com.zz.api.common.nacos.entity.FlowRuleEntity;
 import com.zz.api.common.nacos.entity.RuleEntityWrapper;
-import com.zz.api.common.sentinelfeign.CustomSentinelFeign;
 import com.zz.sccommon.exception.ErrorCode;
 import feign.Feign;
 import lombok.extern.slf4j.Slf4j;
@@ -88,13 +87,13 @@ public class SentinelConfig {
      *
      * @return
      */
-    @Bean
+    /*@Bean
     @Scope("prototype")
     @Primary
     @ConditionalOnProperty(name = "feign.sentinel.enabled")
     public Feign.Builder customeFeignSentinelBuilder() {
         return CustomSentinelFeign.builder();
-    }
+    }*/
     
     /**
      * 注册流控配置转换器。nacos中的数据

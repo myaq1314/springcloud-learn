@@ -10,4 +10,5 @@ package com.zz.gateway.dubbo.common.constant;
  */
 public class DubboGatewayConstants {
     public static final String DUBBO_RESP_RESULT = "dubbo_result";
+    public static final String DUBBO_SINGLE_ARG = "dubbo_single_arg";
 }

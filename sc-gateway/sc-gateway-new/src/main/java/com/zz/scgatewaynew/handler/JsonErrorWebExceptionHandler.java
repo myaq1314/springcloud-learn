@@ -1,19 +1,22 @@
 package com.zz.scgatewaynew.handler;
 
 import com.google.common.collect.Sets;
+import com.zz.gateway.common.util.GatewayUtil;
+import com.zz.gateway.dubbo.common.exception.BizException;
 import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
 import com.zz.scgatewaynew.respdefine.UpstreamResponse;
-import com.zz.scgatewaynew.util.GatewayUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
-import org.springframework.boot.autoconfigure.web.ResourceProperties;
+import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.reactive.error.ErrorAttributes;
-import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.sleuth.CurrentTraceContext;
+import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.cloud.sleuth.instrument.web.WebFluxSleuthOperators;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.HttpStatus;
@@ -53,17 +56,19 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
     private static final String ATTR_MSG = "returnDesc";
     
     public JsonErrorWebExceptionHandler(ErrorAttributes errorAttributes,
-                                        ResourceProperties resourceProperties,
+                                        WebProperties.Resources webResource,
                                         ErrorProperties errorProperties,
                                         ApplicationContext applicationContext) {
-        super(errorAttributes, resourceProperties, errorProperties, applicationContext);
+        super(errorAttributes, webResource, errorProperties, applicationContext);
     }
     
     @Autowired
-    private ReadBodyPredicateFactory readBodyPredicateFactory;
-    @Autowired
     private ResponseFactoryService responseFactoryService;
-    
+    @Autowired
+    private Tracer tracer;
+    @Autowired
+    private CurrentTraceContext currentTraceContext;
+
     /**
      * 异常情况：
      * 1. 后台服务未开启
@@ -78,7 +83,6 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
      * 如果是后台服务抛出的异常(500)，或者后台服务地址未找到(404)则不会走到这里，会直接响应到客户端。可以使用全局过滤器修改响应信息(错误4,5)
      *
      * @param request
-     * @param includeStackTrace
      * @return
      */
     @Override
@@ -99,15 +103,20 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
         }*/
         Route route = request.exchange().getAttribute(GATEWAY_ROUTE_ATTR);
         if(route != null) {
-            log.info(String.format("匹配到的路由信息：{id:%s, routeUrl:%s}", route.getId(), route.getUri()));
+            WebFluxSleuthOperators.withSpanInScope(tracer, currentTraceContext, request.exchange(),
+                    () -> log.info(String.format("匹配到的路由信息：{id:%s, routeUrl:%s}", route.getId(), route.getUri())));
+
         }
-        Object cachedBody = GatewayUtils.fetchBody(readBodyPredicateFactory, request.exchange());
+        Object cachedBody = GatewayUtil.fetchBody(request.exchange());
         if(cachedBody != null) {
-            log.info("[路由转发失败] request data:" + cachedBody);
+            WebFluxSleuthOperators.withSpanInScope(tracer, currentTraceContext, request.exchange(),
+                    () -> log.info("[路由转发失败] request data:" + cachedBody));
         }
         
         // 原始错误响应信息
-        log.info("origin error msg:" + super.getErrorAttributes(request, options));
+        WebFluxSleuthOperators.withSpanInScope(tracer, currentTraceContext, request.exchange(),
+                () -> log.info("origin error msg:" + super.getErrorAttributes(request, options)));
+
         
         Map<String, Object> errorAttributes = new HashMap<>();
         errorAttributes.put(ATTR_CODE, code);
@@ -142,8 +151,16 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
     
     @Override
     protected void logError(ServerRequest request, ServerResponse response, Throwable throwable) {
-        log.error(formatError(throwable, request));
-        log.error(String.format("%s Server Error for %s", response.rawStatusCode(), GatewayUtils.formatRequest(request.exchange().getRequest())));
+        WebFluxSleuthOperators.withSpanInScope(tracer, currentTraceContext, request.exchange(),
+                () -> {
+                    if(!((throwable instanceof com.zz.sccommon.exception.BizException) ||
+                            throwable instanceof com.zz.gateway.dubbo.common.exception.BizException)) {
+                        log.error(formatError(throwable, request), throwable);
+                    } else {
+                        log.error(formatError(throwable, request));
+                    }
+                    log.error(String.format("%s Server Error for %s", response.rawStatusCode(), GatewayUtil.formatRequest(request.exchange().getRequest())));
+                });
     }
     
     private String formatError(Throwable ex, ServerRequest request) {

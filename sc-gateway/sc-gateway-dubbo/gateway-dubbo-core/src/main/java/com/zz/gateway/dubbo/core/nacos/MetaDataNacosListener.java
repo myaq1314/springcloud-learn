@@ -44,22 +44,22 @@ public class MetaDataNacosListener<T> implements DisposableBean {
         String serverAddr = config.getServerAddr();
         Properties nacosProperties = new Properties();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
-        if(!StringUtils.isEmpty(config.getNamespace())) {
+        if(StringUtils.hasText(config.getNamespace())) {
             nacosProperties.put(PropertyKeyConst.NAMESPACE, config.getNamespace());
         }
-        if(!StringUtils.isEmpty(config.getUsername())) {
+        if(StringUtils.hasText(config.getUsername())) {
             // the nacos authentication username
             nacosProperties.put(PropertyKeyConst.USERNAME, config.getUsername());
         }
-        if(!StringUtils.isEmpty(config.getPassword())) {
+        if(StringUtils.hasText(config.getPassword())) {
             // the nacos authentication password
             nacosProperties.put(PropertyKeyConst.PASSWORD, config.getPassword());
         }
-        if(!StringUtils.isEmpty(config.getAccessKey())) {
+        if(StringUtils.hasText(config.getAccessKey())) {
             // access key for namespace
             nacosProperties.put(PropertyKeyConst.ACCESS_KEY, config.getAccessKey());
         }
-        if(!StringUtils.isEmpty(config.getSecretKey())) {
+        if(StringUtils.hasText(config.getSecretKey())) {
             // secret key for namespace
             nacosProperties.put(PropertyKeyConst.SECRET_KEY, config.getSecretKey());
         }

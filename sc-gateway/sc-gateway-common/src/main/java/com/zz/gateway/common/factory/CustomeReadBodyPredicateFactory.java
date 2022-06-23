@@ -1,6 +1,7 @@
 package com.zz.gateway.common.factory;
 
 import com.alibaba.fastjson.JSON;
+import com.zz.gateway.common.GatewayConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.reactivestreams.Publisher;
@@ -53,9 +54,9 @@ public class CustomeReadBodyPredicateFactory extends AbstractRoutePredicateFacto
                 if(!HttpMethod.POST.equals(exchange.getRequest().getMethod())) {
                     return Mono.just(true);
                 }
+                config.setExchange(exchange);
                 Class inClass = config.getInClass();
-                Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
-                Mono<?> modifiedBody;
+                Object cachedBody = exchange.getAttribute(GatewayConstants.CACHE_REQUEST_BODY_OBJECT_KEY);
                 if (cachedBody != null) {
                     try {
                         boolean test = config.predicate.test(cachedBody);
@@ -78,7 +79,7 @@ public class CustomeReadBodyPredicateFactory extends AbstractRoutePredicateFacto
                                     .doOnNext(objectValue -> exchange.getAttributes().put(
                                             CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
                                     .map(objectValue -> config.getPredicate()
-                                            .test(exchange)));
+                                            .test(objectValue)));
                 }
             }
     
@@ -120,6 +121,7 @@ public class CustomeReadBodyPredicateFactory extends AbstractRoutePredicateFacto
         private Map<String, List<String>> attrMap;
     
         private String strategy;
+        private ServerWebExchange exchange;
     
         public Predicate getPredicate() {
             return predicate;
@@ -161,6 +163,14 @@ public class CustomeReadBodyPredicateFactory extends AbstractRoutePredicateFacto
         public Config setAttrMap(Map<String, List<String>> attrMap) {
             this.attrMap = attrMap;
             return this;
+        }
+
+        public ServerWebExchange getExchange() {
+            return exchange;
+        }
+
+        public void setExchange(ServerWebExchange exchange) {
+            this.exchange = exchange;
         }
     }
 }

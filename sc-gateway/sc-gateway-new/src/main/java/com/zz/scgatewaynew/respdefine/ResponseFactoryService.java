@@ -1,15 +1,12 @@
 package com.zz.scgatewaynew.respdefine;
 
-import com.google.common.collect.Lists;
 import com.zz.gateway.common.GatewayConstants;
+import com.zz.gateway.common.util.GatewayUtil;
 import com.zz.scgatewaynew.config.SettingProp;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * ************************************
@@ -45,12 +42,12 @@ public class ResponseFactoryService {
      * @return
      */
     public UpstreamResponse.Response failResponseInfo(ServerWebExchange exchange, String msg, String code) {
-        Object strObj = exchange.getAttribute(GatewayConstants.FAIL_RESPONSE_STRATEGY);
+        String strObj = GatewayUtil.routeMetadata(exchange, GatewayConstants.META_RESP_FORMAT);
         UpstreamResponse response;
         if(strObj == null) {
             response = new NotFoundResponse();
         } else {
-            int strategy = NumberUtils.toInt(strObj + "", GatewayConstants.SP_RESP_STRATEGY);
+            int strategy = NumberUtils.toInt(strObj, GatewayConstants.SP_RESP_STRATEGY);
             response = getRespStrategy(strategy);
         }
         
@@ -64,21 +61,11 @@ public class ResponseFactoryService {
      * @return
      */
     public boolean isFailResponse(ServerWebExchange exchange, String respBody) {
-        Object strObj = exchange.getAttribute(GatewayConstants.FAIL_RESPONSE_STRATEGY);
+        String strObj = GatewayUtil.routeMetadata(exchange, GatewayConstants.META_RESP_FORMAT);
         if(strObj == null) {
             return false;
         }
-    
         int strategy = NumberUtils.toInt(strObj + "", GatewayConstants.SP_RESP_STRATEGY);
         return !getRespStrategy(strategy).isSuccessResponse(respBody);
-    }
-
-    public static void main(String[] args) {
-        List<Integer> data = Lists.newArrayList(1, 2, 3, 4, 5);
-        // data.sort((o1, o2) -> OrderEnum.fromValue(o2).getOrder() - OrderEnum.fromValue(o1).getOrder());
-        // 升序
-        data.sort(Comparator.comparingInt(o -> OrderEnum.fromValue(o).getOrder()));
-
-        System.out.println(data);
     }
 }

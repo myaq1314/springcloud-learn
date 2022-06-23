@@ -18,16 +18,17 @@ import reactor.core.publisher.Mono;
  * @date 2020-09-22 14:32
  * ************************************
  */
-//@Component
+@Component
 @Slf4j
 public class CheckResponseStatusFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         return chain.filter(exchange)
                 .then(Mono.defer(() -> {
-                    log.debug("-- [CheckResponseStatusFilter] record exec time");
+                    //log.debug("-- [CheckResponseStatusFilter] record exec time");
                     HttpStatus responseStatus = exchange.getResponse().getStatusCode();
                     if(responseStatus != null && responseStatus.value() != HttpStatus.OK.value()) {
+                        // 为了让JsonErrorWebExceptionHandler异常拦截
                         return Mono.error(new ResponseStatusException(responseStatus));
                     }
                     return Mono.empty();

@@ -2,7 +2,6 @@ nacos:
   config:
     server-addr: 172.16.80.153:8848
     namespace: 9820bd7a-1df1-4f20-96fd-a8427bd92fdd
-
 # db配置
 spring:
   cloud:
@@ -13,6 +12,7 @@ spring:
         ds1: # sentinel 网关限流规则动态配置
           nacos:
             server-addr: ${sentinel.server-addr}
+            namespace: ${sentinel.namespace}
             data-id: ${spring.application.name}-gateway-flow-rules
             group-id: SENTINEL_GROUP
             # namespace: ${sentinel.namespace}
@@ -23,6 +23,7 @@ spring:
         ds2: # sentinel api组定义动态配置
           nacos:
             server-addr: ${sentinel.server-addr}
+            namespace: ${sentinel.namespace}
             data-id: ${spring.application.name}-api-definition
             group-id: SENTINEL_GROUP
             # 支持json、xml、custom. 使用custom时必须指定converter-class。
@@ -41,19 +42,24 @@ spring:
         file-single-size: 209715200 # 单个sentinel metric文件大小，200M
       transport:
         port: 8791
-        dashboard: 172.16.80.106:8096 # sentinel console地址
+        dashboard: localhost:8096 # 172.16.80.106:8096 # sentinel console地址
         #client-ip: localhost # 指定本地sentinel客户端的IP
 
     gateway:
       route: # 动态路由配置
         nacos:
           server-addr: ${sentinel.server-addr}
+          namespace: ${sentinel.namespace}
           data-id: ${spring.application.name}-gateway-route-rules
           group-id: SENTINEL_GROUP
           # 支持json、xml、custom. 使用custom时必须指定converter-class或bean。
           converter-class: routeRuleDecoder
   #autoconfigure:
   #  exclude: com.alibaba.cloud.sentinel.gateway.SentinelGatewayAutoConfiguration,com.alibaba.cloud.sentinel.gateway.scg.SentinelSCGAutoConfiguration
+#  sleuth:
+#    reactor:
+       # sleuth3.x默认的manual模式无法追踪trace，设置为decorate_on_each可以，但是性能会急剧下降
+#      instrumentation-type: decorate_on_each
 
 #    gateway:
 #      discovery:

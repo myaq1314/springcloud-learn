@@ -14,6 +14,7 @@ spring:
         ds1: # sentinel 网关限流规则动态配置
           nacos:
             server-addr: ${sentinel.server-addr}
+            namespace: ${sentinel.namespace}
             data-id: ${spring.application.name}-gateway-flow-rules
             group-id: SENTINEL_GROUP
             # namespace: ${sentinel.namespace}
@@ -24,6 +25,7 @@ spring:
         ds2: # sentinel api组定义动态配置
           nacos:
             server-addr: ${sentinel.server-addr}
+            namespace: ${sentinel.namespace}
             data-id: ${spring.application.name}-api-definition
             group-id: SENTINEL_GROUP
             # 支持json、xml、custom. 使用custom时必须指定converter-class。
@@ -49,6 +51,7 @@ spring:
       route: # 动态路由配置
         nacos:
           server-addr: ${sentinel.server-addr}
+          namespace: ${sentinel.namespace}
           data-id: ${spring.application.name}-gateway-route-rules
           group-id: SENTINEL_GROUP
           # 支持json、xml、custom. 使用custom时必须指定converter-class或bean。
@@ -79,4 +82,4 @@ dubbo:
 
 # logback profile 配置, 这里指定了logback配置文件，仍然会同时加载名为 logback.xml 的配置文件
 logging:
-  config: classpath:logback-spring.xml
+  config: classpath:log4j2-spring.xml

@@ -1,4 +1,4 @@
-package com.zz.scgatewaynew.util;
+package com.zz.gateway.common.util;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;

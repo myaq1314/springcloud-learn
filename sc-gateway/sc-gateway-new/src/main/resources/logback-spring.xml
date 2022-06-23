@@ -44,7 +44,7 @@
             <appender-ref ref="async-gateway"/>
             <!--<appender-ref ref="CONSOLE"/>-->
         </logger>
-        <logger name="com.zz.gateway.dubbo.core.filter.DubboGlobalFilterFast" level="info" additivity="false">
+        <logger name="com.zz.gateway.dubbo.core.filter.DubboGlobalFilter" level="info" additivity="false">
             <appender-ref ref="gateway"/>
             <!--<appender-ref ref="CONSOLE"/>-->
         </logger>

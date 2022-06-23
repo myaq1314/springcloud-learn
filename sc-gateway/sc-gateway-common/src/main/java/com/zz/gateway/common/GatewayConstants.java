@@ -30,11 +30,6 @@ public class GatewayConstants {
     /**
      * exchange参数-网关转发失败时给客户端的响应策略
      */
-    public static final String FAIL_RESPONSE_STRATEGY = "failRespStrategy";
-    
-    /**
-     * exchange参数-网关转发失败时给客户端的响应策略
-     */
     public static final String CACHE_RESPONSE_BODY = "cacheResponseBody";
     
     /**
@@ -49,9 +44,13 @@ public class GatewayConstants {
      * 微信支付通知接口响应
      */
     public static final int WECHAT_RESP_STRATEGY = 2;
-    
+
+    /**
+     * 该值与{@link org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory}类中的CACHE_REQUEST_BODY_OBJECT_KEY一致
+     */
     public static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
-    
+    public static final String CACHE_REQUEST_BODY_JSON_KEY = "cachedRequestBodyJson";
+
     /**
      * sleuth日志追踪
      */
@@ -65,4 +64,23 @@ public class GatewayConstants {
     public static final String RESOURCE_FOR_NOROUTE = "resource-no-route";
     
     public static final int PARAM_PARSE_STRATEGY_BODY = 5;
+
+    /** ********** Route metadata start *******************/
+    /**
+     * 日志/事务追踪字段名
+     */
+    public static final String META_SESSION_ID = "sessionId";
+    /**
+     * 后台服务异常时网关响应报文格式
+     */
+    public static final String META_RESP_FORMAT = "respStrategy";
+    /**
+     * 扩展数据，JSON格式
+     */
+    public static final String META_EXT_PARAMS = "extParams";
+    /**
+     * 流控标识字段，从请求体中提取存入到请求头
+     */
+    public static final String META_FLOW_CTR = "flowCtrl";
+    /** ********** Route metadata end *******************/
 }

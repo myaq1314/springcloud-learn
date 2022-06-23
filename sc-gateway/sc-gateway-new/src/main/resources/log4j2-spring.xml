@@ -8,10 +8,10 @@
     <Properties>
         <!-- 格式化输出：%date 表示日期，%thread 表示线程名，%-5level：级别从左显示 5 个字符宽度 %msg：日志消息，%n 是换行符-->
         <!-- %logger{36} 表示 Logger 名字最长 36 个字符 -->
-        <Property name="LOG_PATTERN" value="[%level] [%X{X-B3-TraceId}] [%X{X-B3-SpanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %logger{36} - %msg%n" />
+        <Property name="LOG_PATTERN" value="[%level] [%X{traceId}] [%X{spanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %logger{36} - %msg%n" />
         <!-- class和line很耗时 -->
-        <Property name="console_patter">[%-5level] [%X{X-B3-TraceId}] [%X{X-B3-SpanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</Property>
-        <!-- 定义日志存储的路径 -->
+        <Property name="console_patter">[%level] [%X{traceId}] [%X{spanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</Property>
+        <!-- 定义日志存储的路径，获取spring属性值, springcloud由于配置文件加载顺序问题，导致这里取不到值 -->
         <Property name="appName">${spring:spring.application.name}</Property>
         <Property name="FILE_PATH" value="/app/biz_logs/${appName}/" />
     </Properties>
@@ -36,10 +36,10 @@
 
     <Loggers>
         <AsyncLogger name="com" level="info" additivity="false">
-            <appender-ref ref="gateway"/>
+            <appender-ref ref="console"/>
         </AsyncLogger>
         <AsyncRoot level="info">
-            <AppenderRef ref="gateway"/>
+            <AppenderRef ref="console"/>
         </AsyncRoot>
     </Loggers>
 </Configuration>

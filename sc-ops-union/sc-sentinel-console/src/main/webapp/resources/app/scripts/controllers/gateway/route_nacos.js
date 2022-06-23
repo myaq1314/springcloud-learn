@@ -22,6 +22,11 @@ app.controller('GatewayRouteNacosCtl', ['$scope', '$stateParams', 'GatewayRouteS
       pathFilter: false,
       headerFilter: false
     };
+    $scope.metadataCheckList = {
+      traceidParams: false,
+      respParams: false,
+      extParams: false
+    };
 
     $scope.strategyList = [{val: 'and', desc: 'AND'}, {val: 'or', desc: 'OR'}];
     $scope.respStrategy = [{val: 0, desc: 'SP通用响应'}, {val: 1, desc: '订单系统通用响应'},
@@ -180,6 +185,19 @@ app.controller('GatewayRouteNacosCtl', ['$scope', '$stateParams', 'GatewayRouteS
       } else {
         route.filter = {}
       }
+
+      $scope.metadataCheckList= {}
+      if(route.metadata != null) {
+        if(route.metadata.traceid != null) {
+          $scope.metadataCheckList.traceidParams = true
+        }
+        if(route.metadata.respStrategy != null) {
+          $scope.metadataCheckList.respParams = true
+        }
+        if(route.metadata.extParams != null) {
+          $scope.metadataCheckList.extParams = true
+        }
+      }
     }
     var gatewayRouteDialog;
     $scope.editRoute = function (route) {
@@ -222,8 +240,6 @@ app.controller('GatewayRouteNacosCtl', ['$scope', '$stateParams', 'GatewayRouteS
     };
 
     function convertParam() {
-      console.log(moment.defaultZone);
-
       let route = angular.copy($scope.currentRoute);
       if(route.predicate == null) {
         return null
@@ -252,6 +268,26 @@ app.controller('GatewayRouteNacosCtl', ['$scope', '$stateParams', 'GatewayRouteS
         }
         if(!$scope.filterCheckList.pathFilter) {
           route.filter.pathFilter = null
+        }
+      }
+
+      if(route.metadata != null) {
+        if(!$scope.metadataCheckList.traceidParams) {
+          delete route.metadata.traceid
+        }
+        if(!$scope.metadataCheckList.respParams) {
+          delete route.metadata.respStrategy
+        }
+        if(!$scope.metadataCheckList.extParams) {
+          delete route.metadata.extParams
+        }
+        if(route.metadata.extParams != null) {
+          try{
+            JSON.parse(route.metadata.extParams)
+          } catch(jsonerror) {
+            alert("扩展参数的“其他参数”不是合法的json对象")
+            return null
+          }
         }
       }
 

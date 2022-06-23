@@ -6,8 +6,13 @@ package com.zz.scgatewaynew;
 //import brave.propagation.TraceContextOrSamplingFlags;
 //import com.alibaba.csp.sentinel.init.InitExecutor;
 //import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
+
+import brave.propagation.TraceContextOrSamplingFlags;
+import com.alibaba.csp.sentinel.init.InitExecutor;
+import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.zz.scgatewaynew.service.DynamicGatewayService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,8 +28,8 @@ import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.sleuth.TraceContext;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -189,6 +194,9 @@ public class GatewayNewApplication {
      * 1）handlerMappings中会依次执行predicateHandler实现类的getHandler方法，合并取到的Hanlder结果集并提取第一个Handler（.next()方法的作用，获取结果的第一个数据作为新的Mono）.
      *
      * 网关断言过滤器handler：{@link org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping}，调用lookupRoute从所有的路由中断言匹配Route，
+     * 该路由通过{@link CachingRouteLocator#getRoutes()}方法获取，其中的routes监听了cache属性，
+     * 因此通过发布{@link org.springframework.cloud.gateway.event.RefreshRoutesEvent}事件就可以刷新Route。
+     *
      * 然后返回{@link org.springframework.cloud.gateway.handler.FilteringWebHandler}Gateway的GlobalFilter过滤器处理Handler，
      * 这里要区别于WebFlux的 {@link org.springframework.web.server.handler.FilteringWebHandler} WebFilter（类似springmvc的Filter），
      * 并把匹配到的Route存入ServerWebExchange上下文。
@@ -231,34 +239,48 @@ public class GatewayNewApplication {
      *
      * <h1>spring-cloud-sleuth调用链追踪(日志追踪)组件</h1>
      * {@link org.springframework.cloud.sleuth.instrument.web.TraceWebFilter#filter(ServerWebExchange, WebFilterChain)}
-     * 服务启动时先在{{@link org.springframework.cloud.sleuth.instrument.reactor.HookRegisteringBeanDefinitionRegistryPostProcessor#setupHooks(ConfigurableApplicationContext)}
-     * 注册Mono、Flux的钩子，此钩子会在之前执行。注册钩子调用的是{@link org.springframework.cloud.sleuth.instrument.reactor.ReactorSleuth#scopePassingSpanOperator}。
-     * {@link org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration#sleuthCurrentTraceContext} 创建 {@link brave.propagation.ThreadLocalCurrentTraceContext}。
      *
-     * {@link org.springframework.cloud.sleuth.instrument.web.TraceWebFilter.MonoWebFilterTrace#findOrCreateSpan(Context)}方法中会从请求Request中获取一些信息，并创建Span，
+     * 注册Mono、Flux的钩子，此钩子会在之前执行。注册钩子调用的是{@link org.springframework.cloud.sleuth.instrument.reactor.ReactorSleuth#scopePassingSpanOperator}。
+     * {@link org.springframework.cloud.sleuth.autoconfig.brave.BraveAutoConfiguration#sleuthCurrentTraceContextBuilder} 创建 {@link brave.propagation.ThreadLocalCurrentTraceContext}。
+     *
+     * TraceWebFilter 返回{@link org.springframework.cloud.sleuth.instrument.web.TraceWebFilter.MonoWebFilterTrace}代理Mono的subscribe监听
+     * -> {@link org.springframework.cloud.sleuth.instrument.web.TraceWebFilter.MonoWebFilterTrace#findOrCreateSpan(Context)}方法中会从请求Request中获取一些信息，并创建Span，
+     * 从请求头获取trace信息，-> {@link brave.propagation.B3Propagation.B3Extractor#extract(Object)} 获取请求头中的traceid，这里还是取得 X-B3-TraceId
+     * -> {@link org.springframework.cloud.sleuth.brave.bridge.BraveCurrentTraceContext#maybeScope(TraceContext)} 这里会将追踪信息写入MDC
+     * {@link brave.baggage.CorrelationScopeDecorator.Builder} 添加traceid域。sleuth3要用traceId和spanId取值，X-B3-*，X-B3-TraceId不再存入MDC。
+     * {@link brave.context.slf4j.MDCScopeDecorator.MDCContext#update(String, String)} 将追踪id放入MDC
+     *
      * 具体在{@link brave.http.HttpServerHandler#handleReceive}（后面详细解析这里生成traceid的代码）
      * 上面的方法执行之后才会走到scopePassingSpanOperator方法的new {@link org.springframework.cloud.sleuth.instrument.reactor.ScopePassingSpanSubscriber#onSubscribe}，
      * 然后Mono响应被该类代理，从而执行其中的 onSubscribe。
      * 然后会执行到{@link brave.propagation.ThreadLocalCurrentTraceContext#newScope(TraceContext)}，
      * 其父类 CurrentTraceContext的scopeDecorators属性会有 {@link org.springframework.cloud.sleuth.log.Slf4jScopeDecorator}，
      * 在{@link org.springframework.cloud.sleuth.log.SleuthLogAutoConfiguration.Slf4jConfiguration}中被注入。
-     * 因此又会执行到{@link org.springframework.cloud.sleuth.log.Slf4jScopeDecorator#decorateScope}，
+     * 因此又会执行到{@link org.springframework.cloud.sleuth.log.MDCScopeDecorator#decorateScope}，
      * 然后执行{@link brave.baggage.CorrelationScopeDecorator.Multiple#decorateScope}，其中的context.update 这里会把日志相关信息存入MDC，
-     * 即{@link brave.context.slf4j.MDCScopeDecorator.MDCContext#update(String, String)}。
-     * {@link brave.propagation.TraceIdContext#toTraceIdString(long, long)} 新版本取traceid
+     * 即{@link brave.context.slf4j.MDCScopeDecorator.MDCContext#update(String, String)} 将追踪id放入MDC
+     * {@link brave.propagation.TraceIdContext#toTraceIdString(long, long)} 新版本取 traceid
+     *
+     * {@link brave.baggage.CorrelationScopeDecorator.Builder} 添加traceid域。sleuth3要用traceId和spanId取值，X-B3-*，X-B3-TraceId不再存入MDC。
      *
      * {@link brave.http.HttpServerHandler#handleReceive}中先调用defaultExtractor.extract(request)，即{@link brave.propagation.B3Propagation.B3Extractor#extract}
      * 获取request头部信息相关key，
      * 然后执行{@link brave.http.HttpServerHandler#nextSpan(TraceContextOrSamplingFlags, HttpServerRequest)}，前面请求头中没有相关key则TranceContext为null，
-     * 执行{@link Tracer#nextSpan(TraceContextOrSamplingFlags)}，在{@link Tracer#decorateContext}方法中生成traceID和spanID，{@link Tracer#nextId}，这里显然生成的id是不唯一的，只是一个随机数。
+     * 执行{@link brave.Tracer#nextSpan(TraceContextOrSamplingFlags)}，在{@link brave.Tracer#decorateContext}方法中生成traceID和spanID，{@link brave.Tracer#nextId}，这里显然生成的id是不唯一的，只是一个随机数。
      *
+     * 链路追踪设置{@link org.springframework.cloud.sleuth.autoconfig.instrument.reactor.TraceReactorAutoConfiguration}
+     * 链路追踪通过{@link org.springframework.cloud.sleuth.autoconfig.instrument.web.client.TraceGatewayEnvironmentPostProcessor}修改属性为
+     * “spring.sleuth.reactor.instrumentation-type”赋值默认值为 manual。
+     * <p>
+     * sleuth3.x要设置spring.sleuth.reactor.instrumentation-type=decorate_on_each才会在链式反应中记录tarceid，但是性能很低，默认是 manual 模式，链式调用无法打印tarceid。
+     * </p>
      *
      * 总结：
      * sleuth通过注册Mono/Flux的Hook钩子实现向MDC中写入追踪信息以及使用WebFlux过滤器代理请求响应Mono，
      * 定制onSubscribe、onComplete等方法向转发的请求头中添加信息来实现日志、调用链的追踪。
      *
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NacosException {
         System.setProperty("nacos.logging.default.config.enabled", "false");
         SpringApplication.run(GatewayNewApplication.class, args);
     }
@@ -294,78 +316,80 @@ public class GatewayNewApplication {
      */
     @Bean
     public RouteLocator myRoutes(RouteLocatorBuilder builder) {
-        String httpUri = "http://baidu.com:80";
-        return builder.routes()
-                .route("route-demo-122", p -> p
-                        .path("/get")
-                        .filters(f -> f.addRequestHeader("Hello", "World"))
-                        .uri(httpUri))
-                /*.route(p -> p
-                        .path("/hystrix")
-                        .filters(f -> f
-                                .hystrix(config -> config
-                                        .setName("mycmd")
-                                        .setFallbackUri("forward:/fallback"))
-                                        .retry(2))  // 默认只支持5XX错误并且是GET请求的场景
-                        .uri("http://localhost:8081"))*/
-                /*.route(p -> p
-                        // 获取psot请求体
-                        .readBody(Object.class, body -> {
-                            log.info("request json:{}", JSON.toJSONString(body));
-                            return false;
-                        })
-                        .and()
-                        .method(HttpMethod.POST)
-                        .uri(httpUri)
-                        .order(-100)
-                )*/
-                .route("route-demo-123", p -> p
-                        .path("/testFlowRule")
-                        .and()
-                        .method(HttpMethod.POST)
-                        .and()
-                        .readBody(String.class, body -> {
-                            // 不能读多次
-                            log.info("request json:{}", JSON.toJSONString(body));
-                            JSONObject jsonObject = JSONObject.parseObject(body);
-                            String issureId;
-                            if ((issureId = jsonObject.getString("issuerid")) != null && "test".equalsIgnoreCase(issureId)) {
-                                return true;
-                            } else {
+        return () -> {
+            String httpUri = "http://baidu.com:80";
+            return builder.routes()
+                    .route("route-demo-122", p -> p
+                            .path("/get1")
+                            .filters(f -> f.addRequestHeader("Hello", "World"))
+                            .uri(httpUri))
+                    /*.route(p -> p
+                            .path("/hystrix")
+                            .filters(f -> f
+                                    .hystrix(config -> config
+                                            .setName("mycmd")
+                                            .setFallbackUri("forward:/fallback"))
+                                            .retry(2))  // 默认只支持5XX错误并且是GET请求的场景
+                            .uri("http://localhost:8081"))*/
+                    /*.route(p -> p
+                            // 获取psot请求体
+                            .readBody(Object.class, body -> {
+                                log.info("request json:{}", JSON.toJSONString(body));
                                 return false;
-                            }
-                        })
-                        .filters(filterSpec -> {
-                            return filterSpec
-                                    .setPath("/mq/postDemo")
-                                    .modifyRequestBody(String.class, String.class, ((serverWebExchange, s) -> {
-                                        // modify request body, add traceID
-                                        JSONObject jsonObject = JSONObject.parseObject(s);
-                                        String traceId = getTraceId(serverWebExchange);
-                                        log.info("[{}] modify request body...", traceId);
-                                        
-                                        if(StringUtils.isEmpty(jsonObject.getString("transactionid"))) {
-                                            jsonObject.put("transactionid", traceId);
-                                        }
-                                        return Mono.just(jsonObject.toJSONString());
-                                    }));
-                        })
-                        // uri中不能包含path
-                        .uri(URI.create("http://localhost:8083/"))
-                        .order(-100)
-                )
-                .route("dubbo", p -> p.path("/order/create").uri("dubbo://127.0.0.1"))
-                .route("fast", p -> p.path("/order/fast").uri("fast://127.0.0.1"))
-                .route("dubbo2", p -> p.path("/traffic/**").uri("dubbo://127.0.0.1"))
-                /*.route(p -> p
-                        .readBody(Object.class, b -> true)
-                        .uri("https://sina.cn/")
-                        .order(100)
-                )*/
-                .route("direct", p -> p.path("/direct").uri("dubbo://172.16.81.10"))
-                .route("http", p -> p.path("/getInfo").uri("http://172.16.80.160:9094"))
-                .route("dispatcher", p -> p.path("/sptsm/dispacher").uri("http://172.16.80.134:8088"))
-                .build();
+                            })
+                            .and()
+                            .method(HttpMethod.POST)
+                            .uri(httpUri)
+                            .order(-100)
+                    )*/
+                    .route("route-demo-123", p -> p
+                            .order(-100)
+                            .path("/testFlowRule")
+                            .and()
+                            .method(HttpMethod.POST)
+                            .and()
+                            .readBody(String.class, body -> {
+                                // 不能读多次
+                                log.info("request json:{}", JSON.toJSONString(body));
+                                JSONObject jsonObject = JSONObject.parseObject(body);
+                                String issureId;
+                                if ((issureId = jsonObject.getString("issuerid")) != null && "test".equalsIgnoreCase(issureId)) {
+                                    return true;
+                                } else {
+                                    return false;
+                                }
+                            })
+                            .filters(filterSpec -> {
+                                return filterSpec
+                                        .setPath("/mq/postDemo")
+                                        .modifyRequestBody(String.class, String.class, ((serverWebExchange, s) -> {
+                                            // modify request body, add traceID
+                                            JSONObject jsonObject = JSONObject.parseObject(s);
+                                            String traceId = getTraceId(serverWebExchange);
+                                            log.info("[{}] modify request body...", traceId);
+
+                                            if(StringUtils.isEmpty(jsonObject.getString("transactionid"))) {
+                                                jsonObject.put("transactionid", traceId);
+                                            }
+                                            return Mono.just(jsonObject.toJSONString());
+                                        }));
+                            })
+                            // uri中不能包含path
+                            .uri(URI.create("http://localhost:8083/"))
+                    )
+                    //.route("dubbo", p -> p.path("/order/**").uri("dubbo://127.0.0.1"))
+                    //.route("dubbo2", p -> p.path("/traffic/**").uri("dubbo://127.0.0.1"))
+                    /*.route(p -> p
+                            .readBody(Object.class, b -> true)
+                            .uri("https://sina.cn/")
+                            .order(100)
+                    )*/
+                    //.route("direct", p -> p.path("/direct").uri("dubbo://172.16.81.10"))
+                    //.route("http", p -> p.path("/getInfo").uri("http://172.16.80.160:9094"))
+                    //.route("http2", p -> p.path("/dubbo-demo/**").uri("http://localhost:8088"))
+                    //.route("dispatcher", p -> p.path("/sptsm/dispacher").uri("http://172.16.80.134:8088"))
+                    .build().getRoutes().doOnNext(route -> log.info("注册default路由id:" + route.getId()));
+        };
     }
 
     /*@RequestMapping("/fallback")

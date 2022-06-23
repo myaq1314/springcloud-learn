@@ -3,11 +3,13 @@ package com.zz.gateway.common.routedefine.predicaterule;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.zz.gateway.common.factory.CustomeReadBodyPredicateFactory;
+import com.zz.gateway.common.util.GatewayUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.gateway.route.builder.BooleanSpec;
 import org.springframework.cloud.gateway.route.builder.PredicateSpec;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
 import java.util.Map;
@@ -89,18 +91,14 @@ public class BodyRule implements IRule {
                         if (attrMap == null || attrMap.isEmpty()) {
                             return true;
                         }
-                        /*if (!JsonUtils.isJson(body)) {
+
+                        ServerWebExchange exchange = c.getExchange();
+                        if (!GatewayUtil.isJson(exchange.getRequest().getHeaders().getContentType())) {
                             log.info("request body is not a json data");
-                            // todo 这里先让非json格式数据通过，等可以在外部获取body体后这里需要改为false.
                             return true;
-                        }*/
-                        JSONObject jsonObject = null;
-                        try {
-                            jsonObject = JSONObject.parseObject(body);
-                        } catch (Exception e) {
-                            log.error("json parse error", e);
-                            return false;
                         }
+
+                        JSONObject jsonObject = GatewayUtil.fetchBodyJsonObject(exchange);
                         boolean predicateFlag = false;
                     
                         for (Map.Entry<String, List<String>> entry : attrMap.entrySet()) {

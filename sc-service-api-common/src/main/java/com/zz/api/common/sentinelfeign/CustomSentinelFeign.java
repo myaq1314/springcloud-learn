@@ -1,3 +1,4 @@
+/*
 package com.zz.api.common.sentinelfeign;
 
 import com.alibaba.cloud.sentinel.feign.SentinelContractHolder;
@@ -5,8 +6,8 @@ import feign.Contract;
 import feign.Feign;
 import feign.InvocationHandlerFactory;
 import feign.Target;
-import feign.hystrix.FallbackFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.cloud.openfeign.FeignContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -18,6 +19,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+*/
 /**
  * ************************************
  * create by Intellij IDEA
@@ -25,7 +27,8 @@ import java.util.Map;
  * @author Francis.zz
  * @date 2020-05-19 10:43
  * ************************************
- */
+ *//*
+
 public class CustomSentinelFeign {
     private CustomSentinelFeign() {
     
@@ -141,3 +144,4 @@ public class CustomSentinelFeign {
         
     }
 }
+*/

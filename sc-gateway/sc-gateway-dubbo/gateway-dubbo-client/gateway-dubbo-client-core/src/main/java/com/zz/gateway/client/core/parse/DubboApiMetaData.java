@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 /**
  * ************************************
  * create by Intellij IDEA
@@ -42,6 +44,11 @@ public class DubboApiMetaData {
     private Integer retries;
 
     private Integer timeout;
+
+    /**
+     * http请求RequestMethod
+     */
+    private String requestMethod;
 
     /**
      * 负载均衡策略

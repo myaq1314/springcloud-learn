@@ -13,21 +13,21 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.3.RELEASE</version>
+        <version>2.6.8</version>
     </parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <alibaba.sentinel.version>1.8.0</alibaba.sentinel.version>
+        <alibaba.sentinel.version>1.8.4</alibaba.sentinel.version>
         <alibaba.nacos.boot.version>0.2.7</alibaba.nacos.boot.version>
-        <nacos.version>2.0.4</nacos.version>
-        <!-- spring-cloud H.SR8版本匹配springboot2.3.x,版本不能随便修改 -->
-        <spring-cloud.version>Hoxton.SR8</spring-cloud.version>
+        <nacos.version>2.0.3</nacos.version>
+        <!-- spring-cloud 2021.0.3版本匹配springboot2.6.x,版本不能随便修改 -->
+        <spring-cloud.version>2021.0.3</spring-cloud.version>
         <!-- alibaba spring cloud全家桶,与springcloud版本匹配不能随便修改.
             版本匹配关系参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E -->
-        <spring.cloud.alibaba.version>2.2.3.RELEASE</spring.cloud.alibaba.version>
+        <spring.cloud.alibaba.version>2021.0.1.0</spring.cloud.alibaba.version>
         <!-- spring boot cloud集群服务监控 -->
         <spring.boot.admin.version>2.2.3</spring.boot.admin.version>
         <dubbo.spring.boot.version>3.0.6</dubbo.spring.boot.version>
@@ -81,12 +81,6 @@
                 <version>${spring.cloud.alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.alibaba.csp</groupId>
-                        <artifactId>sentinel-core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <dependency>
@@ -132,38 +126,6 @@
                 <artifactId>log4j-core</artifactId>
                 <version>${log4j2.version}</version>
             </dependency>
-
-            <!-- alibaba sentinel 网关限流-->
-            <!--<dependency>
-                <groupId>com.alibaba.cloud</groupId>
-                <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
-                <version>${spring.cloud.alibaba.version}</version>
-            </dependency>
-            &lt;!&ndash; alibaba sentinel 网关限流&ndash;&gt;
-            <dependency>
-                <groupId>com.alibaba.cloud</groupId>
-                <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
-                <version>${spring.cloud.alibaba.version}</version>
-            </dependency>
-
-            &lt;!&ndash; sentinel动态规则配置，数据源集合 包括nacos、redis等 &ndash;&gt;
-            <dependency>
-                <groupId>com.alibaba.cloud</groupId>
-                <artifactId>spring-cloud-alibaba-sentinel-datasource</artifactId>
-                <version>${spring.cloud.alibaba.version}</version>
-            </dependency>
-
-            &lt;!&ndash; Nacos discovery &ndash;&gt;
-            <dependency>
-                <groupId>com.alibaba.cloud</groupId>
-                <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-                <version>${spring.cloud.alibaba.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.alibaba.cloud</groupId>
-                <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-                <version>${spring.cloud.alibaba.version}</version>
-            </dependency>-->
 
             <!-- sentinel动态数据源-nacos,要单独引入 -->
             <dependency>
@@ -240,10 +202,15 @@
                 <artifactId>dubbo-registry-nacos</artifactId>
                 <version>${dubbo.spring.boot.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-spring-boot</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <distributionManagement>
+    <!--<distributionManagement>
         <repository>
             <id>nexus-releases</id>
             <name>Nexus Releases Repository</name>
@@ -254,7 +221,7 @@
             <name>Nexus Snapshots Repository</name>
             <url>http://192.168.5.201:8081/repository/maven-snapshots/</url>
         </snapshotRepository>
-    </distributionManagement>
+    </distributionManagement>-->
 
     <build>
         <plugins>

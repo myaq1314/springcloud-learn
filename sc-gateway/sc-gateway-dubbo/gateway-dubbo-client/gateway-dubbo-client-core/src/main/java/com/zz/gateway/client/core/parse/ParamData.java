@@ -1,7 +1,9 @@
 package com.zz.gateway.client.core.parse;
 
-import com.zz.gateway.client.core.annotation.ParamFromType;
 import lombok.Data;
+import org.springframework.lang.Nullable;
+
+import java.util.Objects;
 
 /**
  * ************************************
@@ -24,7 +26,7 @@ public class ParamData {
     /**
      * 参数来源
      */
-    private ParamFromType fromWhere;
+    private String fromWhere;
     /**
      * 是否必须
      */
@@ -38,6 +40,11 @@ public class ParamData {
      */
     private int paramIndex;
 
+    /**
+     * 所属方法名
+     */
+    private String methodName;
+
     public ParamData() {
     }
 
@@ -45,5 +52,46 @@ public class ParamData {
         this.paramName = paramName;
         this.paramType = paramType;
         this.paramIndex = paramIndex;
+    }
+
+    public ParamData(String paramName, String paramType, int paramIndex, String methodName) {
+        this.paramName = paramName;
+        this.paramType = paramType;
+        this.paramIndex = paramIndex;
+        this.methodName = methodName;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+
+        ParamData paramData = (ParamData) other;
+        return required == paramData.required && paramIndex == paramData.paramIndex &&
+                Objects.equals(paramName, paramData.paramName) &&
+                Objects.equals(paramType, paramData.paramType) &&
+                Objects.equals(methodName, paramData.methodName) &&
+                Objects.equals(fromWhere, paramData.fromWhere);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(paramName, paramType, fromWhere, methodName) + this.paramIndex;
+    }
+
+    @Override
+    public String toString() {
+        return "ParamData{" +
+                "methodName='" + methodName + '\'' +
+                ", paramName='" + paramName + '\'' +
+                ", paramType='" + paramType + '\'' +
+                ", paramIndex=" + paramIndex +
+                ", fromWhere=" + fromWhere +
+                '}';
     }
 }

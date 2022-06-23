@@ -20,15 +20,18 @@ import java.util.List;
  * @date 2020-03-26 18:18
  * ************************************
  */
-//@Component
+@Component
 @Slf4j
 public class CustomRouteLocator implements RouteLocator {
     @Autowired
     private RouteLocatorBuilder routeLocatorBuilder;
-    
+
     private volatile Flux<Route> currentRoute = Flux.empty();
     /**
-     * nacos刷新时会有refreshAll调用， RouteRefreshListener 会监听到然后重置RefreshRoutesEvent事件，所以这里也会刷新
+     * GatewayRoutePropertyListener 会发布 RefreshRoutesEvent 事件，
+     * {@link org.springframework.cloud.gateway.route.CachingRouteLocator} 会监听该事件，然后调用fetch来刷新所有路由s
+     *
+     * RouteRefreshListener 会监听所有事件， 如果是指定事件也会发布 RefreshRoutesEvent 事件导致route被刷新。
      * RouteRefreshListener会监听HeartbeatEvent事件，当开启NacosWatch时会定时发布HeartbeatEvent事件，所以这里也会刷新。
      * 如果网关不需要自动刷新新服务的路由(即spring.cloud.gateway.discovery.locator.enabled: false)则可以关闭NacosWatch(spring.cloud.nacos.discovery.watch.enabled: false).
      *

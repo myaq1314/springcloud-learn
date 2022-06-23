@@ -1,14 +1,11 @@
-/*
 package com.zz.scgatewaynew.config;
 
 import com.alibaba.csp.sentinel.init.InitExecutor;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-*/
 /**
  * ************************************
  * create by Intellij IDEA
@@ -18,7 +15,7 @@ import org.springframework.stereotype.Component;
  * @author Francis.zz
  * @date 2020-11-02 16:32
  * ************************************
- *//*
+ */
 
 @Component
 public class SpringStartCallback implements ApplicationRunner {
@@ -32,4 +29,3 @@ public class SpringStartCallback implements ApplicationRunner {
         System.out.println("启动成功...");
     }
 }
-*/

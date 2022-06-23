@@ -1,3 +1,4 @@
+/*
 package com.zz.api.common.sentinelfeign;
 
 import com.alibaba.cloud.sentinel.feign.SentinelContractHolder;
@@ -28,6 +29,7 @@ import java.util.Map;
 
 import static feign.Util.checkNotNull;
 
+*/
 /**
  * ************************************
  * create by Intellij IDEA
@@ -36,7 +38,8 @@ import static feign.Util.checkNotNull;
  * @author Francis.zz
  * @date 2020-05-19 10:45
  * ************************************
- */
+ *//*
+
 @Slf4j
 public class CustomSentinelInvocationHandler implements InvocationHandler {
     private final Target<?> target;
@@ -184,3 +187,4 @@ public class CustomSentinelInvocationHandler implements InvocationHandler {
         return result;
     }
 }
+*/

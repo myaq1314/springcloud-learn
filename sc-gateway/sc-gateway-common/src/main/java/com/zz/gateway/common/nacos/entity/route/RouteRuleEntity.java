@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * ************************************
@@ -30,6 +31,11 @@ public class RouteRuleEntity implements RuleCheck {
      * eg： http://ip:port/contextPath
      */
     private String uri;
+    /**
+     * 元数据
+     */
+    private Map<String, Object> metadata;
+
     /**
      * 路由规则优先级，值越小优先级越高
      */

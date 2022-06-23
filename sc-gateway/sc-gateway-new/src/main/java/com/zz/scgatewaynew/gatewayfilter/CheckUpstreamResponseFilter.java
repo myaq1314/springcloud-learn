@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
  * @date 2020-09-24 16:43
  * ************************************
  */
-//@Component
+@Component
 public class CheckUpstreamResponseFilter implements GlobalFilter, Ordered {
     private final Logger LOG = LoggerFactory.getLogger(getClass());
     
@@ -49,7 +49,7 @@ public class CheckUpstreamResponseFilter implements GlobalFilter, Ordered {
                             return Mono.error(new UpstreamRespException());
                         }
                     } catch (Exception e) {
-                        LOG.warn("[CheckUpstreamResponseFilter] parse response body failed.", e);
+                        //LOG.warn("[CheckUpstreamResponseFilter] parse response body failed.", e);
                         return Mono.empty();
                     }
                     return Mono.empty();

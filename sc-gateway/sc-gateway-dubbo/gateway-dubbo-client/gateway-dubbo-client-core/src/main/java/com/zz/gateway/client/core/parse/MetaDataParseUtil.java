@@ -1,12 +1,13 @@
 package com.zz.gateway.client.core.parse;
 
 import com.zz.gateway.client.core.annotation.ParamAttribute;
-import org.apache.dubbo.common.utils.ClassUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Map;
 
 /**
  * ************************************
@@ -28,16 +29,24 @@ public class MetaDataParseUtil {
         ParamData[] pdInfos = new ParamData[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             Parameter cur = parameters[i];
-            ParamData paramData = new ParamData(cur.getName(), cur.getType().getName(), i + 1);
+            // getName 和 getTypeName 对于数组格式有区别有区别
+            // getName: [Ljava.lang.String;
+            // getTypeName: java.lang.String[]
+            String typeName = cur.getType().getName();
+            if(Map.class.isAssignableFrom(cur.getType())) {
+                typeName = Map.class.getName();
+            }
+            ParamData paramData = new ParamData(cur.getName(), typeName, i + 1, cur.getDeclaringExecutable().getName());
             ParamAttribute an = AnnotatedElementUtils.getMergedAnnotation(cur, ParamAttribute.class);
             if(an != null) {
-                paramData.setFromWhere(an.paramFromType());
-                if(!StringUtils.isEmpty(an.name())) {
+                paramData.setFromWhere(an.paramFromType().name());
+                if(StringUtils.hasText(an.name())) {
                     paramData.setParamName(an.name());
                 }
                 paramData.setRequired(an.required());
             }
-            paramData.setSimpleType(ClassUtils.isSimpleType(cur.getType()));
+            // 数组存放的属性是基础类型也算基础类型，List不是基础类型
+            paramData.setSimpleType(BeanUtils.isSimpleProperty(cur.getType()));
 
             pdInfos[i] = paramData;
         }

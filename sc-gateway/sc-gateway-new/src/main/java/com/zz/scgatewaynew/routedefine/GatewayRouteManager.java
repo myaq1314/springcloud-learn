@@ -73,6 +73,9 @@ public class GatewayRouteManager {
         }
         
         private synchronized void applyGatewayRouteInternal(List<RouteRule> conf) {
+            if(GATEWAY_ROUTE_RULE.equals(conf)) {
+                return;
+            }
             GATEWAY_ROUTE_RULE.clear();
             
             if(!CollectionUtils.isEmpty(conf)) {

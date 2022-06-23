@@ -8,8 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 @ConditionalOnClass(WebFluxConfigurer.class)
 @AutoConfigureBefore(WebFluxAutoConfiguration.class)
-@EnableConfigurationProperties({ ServerProperties.class, ResourceProperties.class })
+@EnableConfigurationProperties({ ServerProperties.class, WebProperties.class })
 public class CustomErrorConfig {
     private final ServerProperties serverProperties;
     
@@ -49,17 +49,17 @@ public class CustomErrorConfig {
     @ConditionalOnMissingBean(value = ErrorWebExceptionHandler.class, search = SearchStrategy.CURRENT)
     @Order(-1)
     public ErrorWebExceptionHandler errorWebExceptionHandler(ErrorAttributes errorAttributes,
-                                                             ResourceProperties resourceProperties, ObjectProvider<ViewResolver> viewResolvers,
+                                                             WebProperties webProperties, ObjectProvider<ViewResolver> viewResolvers,
                                                              ServerCodecConfigurer serverCodecConfigurer, ApplicationContext applicationContext) {
         JsonErrorWebExceptionHandler exceptionHandler = new JsonErrorWebExceptionHandler(errorAttributes,
-                resourceProperties, this.serverProperties.getError(), applicationContext);
+                webProperties.getResources(), this.serverProperties.getError(), applicationContext);
         exceptionHandler.setViewResolvers(viewResolvers.orderedStream().collect(Collectors.toList()));
         exceptionHandler.setMessageWriters(serverCodecConfigurer.getWriters());
         exceptionHandler.setMessageReaders(serverCodecConfigurer.getReaders());
         return exceptionHandler;
     }
     
-    //@Bean
+    @Bean
     @Order(-2)
     public UpstreamResponseFailHandler upstreamResponseFailHandler() {
         return new UpstreamResponseFailHandler();
