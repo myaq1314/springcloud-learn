@@ -59,7 +59,9 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 public class OrderController {
-    // 使用构造方法注入
+    /**
+     * 使用feign客户端，需要 @EnableFeignClients 注解指定扫描feign客户端声明的包（即使用了 @FeignClient 注解的类或接口）
+     */
     @Autowired
     private OrderClient orderClient;
     @Autowired
@@ -71,11 +73,11 @@ public class OrderController {
     private String database;
     
     @GetMapping("getOrder")
-    public ApiResponse<String> getMessage(@RequestParam String orderNo, @RequestParam String issueId) {
+    public ApiResponse<String> getMessage(@RequestParam int timeout, @RequestParam String issueId) {
         Date cur = new Date();
-        log.info("requst time:" + DateFormatUtils.format(cur, "yyyy-MM-dd HH:mm:ss") + ",order:" + orderNo);
+        log.info("requst time:" + DateFormatUtils.format(cur, "yyyy-MM-dd HH:mm:ss") + ",order:" + timeout);
         OrderInfo params = new OrderInfo();
-        params.setOrderNo(orderNo);
+        params.setOrderNo("123");
         params.setPayTime(cur);
         // 保存线程数据
         ServerIdConfig serverConfig = getServerId(issueId);
@@ -87,7 +89,7 @@ public class OrderController {
             extParams.setCardCode(serverConfig.getCardCode());
             FeignDataThreadLocal.set(extParams);
         }
-        return orderClient.getOrderInfo(params);
+        return orderClient.getOrderInfo(timeout);
     }
     
     @PostMapping("createOrder")
@@ -111,10 +113,10 @@ public class OrderController {
             FeignDataThreadLocal.set(extParams);
         }
         long start = System.currentTimeMillis();
-        ApiResponse<OrderInfo> result = orderClient.createOrder(json);
+        orderClient.createOrder(json);
         long end = System.currentTimeMillis();
         System.out.println("create order executed " + (end - start) + "ms");
-        return result;
+        return new ApiResponse<>();
     }
     
     @RequestMapping("getApi")

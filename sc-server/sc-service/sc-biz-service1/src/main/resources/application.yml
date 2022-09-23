@@ -1,0 +1,25 @@
+server:
+  port: 8093
+spring:
+  application:
+    name: sc-service
+
+  profiles:
+    include:
+      - nacos
+
+  security:
+    user: # http端点认证用户
+      name: admin
+      password: client2020#
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*' # 暴露web方式访问的所有端点
+    jmx:
+      exposure:
+        exclude: '*' # 关闭端点JMX访问方式
+  endpoint:
+    health:
+      show-details: always

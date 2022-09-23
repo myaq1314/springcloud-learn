@@ -39,6 +39,12 @@
             <artifactId>feign-httpclient</artifactId>
         </dependency>
 
+        <!-- springcloud2020以上版本需要手动引入loadbalancer，否则无法解析服务名实现负载均衡 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.zz</groupId>
             <artifactId>sc-service-api</artifactId>
@@ -61,11 +67,11 @@
             </exclusions>
         </dependency>
 
-        <!-- 由于sentine-core是基于1.7.2源码定制的，在spring-cloud-starter-alibaba-sentinel引用的sentinel还没到1.7.2之前都需要手动导入 -->
+        <!-- 由于sentine-core是基于1.8.4源码定制的，在spring-cloud-starter-alibaba-sentinel引用的sentinel还没到1.8.4之前都需要手动导入 -->
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-transport-simple-http</artifactId>
-            <version>1.7.2</version>
+            <version>${alibaba.sentinel.version}</version>
         </dependency>
 
         <dependency>
@@ -124,6 +130,19 @@
             <groupId>com.alibaba.csp</groupId>
             <artifactId>spring-boot-starter-ahas-sentinel-client</artifactId>
         </dependency>-->
+
+        <!-- 记录监控指标并开放查询端点 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- 将监控指标数据转为prometheus可识别数据 -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

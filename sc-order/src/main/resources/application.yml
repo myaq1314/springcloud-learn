@@ -1,6 +1,23 @@
 druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJPhHE3RXKSjw2LQIIXr/oYjy7p7tf0dg0wGRfGWnfK1uvNh7+v/s1T9BiOip9zE3ftKGh83lUaYOMlpmaVMkhMCAwEAAQ==
+server:
+  port: 7093
+  tomcat:
+    threads:
+      max: 500
+  servlet:
+    context-path: /sc-order
 
 spring:
+  application:
+    name: sc-order
+
+  profiles:
+    # 引入公共配置，application-nacos.yml
+    # 同名属性优先级：active > include > 当前配置
+    include:
+      - nacos
+    active: dev
+
   # influxDb配置
   influx:
     url: http://192.168.5.105:8086
@@ -12,13 +29,13 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver # com.p6spy.engine.spy.P6SpyDriver #com.mysql.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     # jdbc:p6spy:mysql://172.16.80.106:3306/vfc_sptsm?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    url: jdbc:mysql://192.168.5.105:3306/upms?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/vfc_sptsm?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
-    password: ZBUpE6njXUj5hFe1Qo7bDz9VUasWvqAI9hz5BbrAscEci6f1j8YqT4x977WZeMeXuqy2xROprQvRDDHnvT091g==
+    password: 123456
     druid:
       initial-size: 1
       # 启用数据库密码加密
-      connection-properties: config.decrypt=true;config.decrypt.key=${druid-public-key}
+      connection-properties: config.decrypt=false;config.decrypt.key=${druid-public-key}
       filter:
         stat:
           enabled: false
@@ -44,13 +61,18 @@ spring:
     host: 192.168.5.105
     port: 6581
   cloud:
-    nacos:
-        username: nacos # nacos1.2以上版本增加客户端认证，需要认证才能读取配置
-        password: vfc2020!@#
-    sentinel:
-      transport:
-        port: 8791
-        dashboard: 192.168.5.105:8096 # sentinel console地址
+#    nacos:
+#      discovery:
+#        watch:
+#          enabled: false # 是否开启NacosWatch,向spring boot admin刷新新注册的服务
+#        watch-delay: 10000 # Nacos watch执行时间间隔默认30s
+#        username: nacos # nacos1.2以上版本增加客户端认证，需要认证才能读取配置
+#        password: vfc2020!@#
+
+    sentinel: # 参见application-nacos.yml公共配置
+#      transport:
+#        port: 8791
+#        dashboard: 192.168.5.105:8096 # sentinel console地址
         #client-ip: localhost  # 指定sentinel transport客户端IP，用于有多个IP的服务器时
       log:
         dir: /app/biz_logs/${spring.application.name}/csp # sentinel 日志目录
@@ -82,6 +104,8 @@ spring:
     user: # http端点认证用户
       name: admin
       password: client2020#
+
+# actuator监听配置
 management:
   endpoints:
     web:
@@ -93,11 +117,22 @@ management:
   endpoint:
     health:
       show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 feign:
   httpclient:
     enabled: true # 使用apache http client替换feign默认的httpclient
   sentinel:
+    # 开启sentinel代理
     enabled: true
+  client:
+    config:
+      default: # 设置httpclient超时时间
+        read-timeout: 3000
+        connect-timeout: 5000
+
 
 ribbon:
   ReadTimeout: 4000 # feign客户端请求read time out设置
@@ -110,6 +145,5 @@ project:
 
 mybatis-plus:
   mapper-locations: classpath*:com/zz/scorder/dao/mapper/**/*.xml
-
 
 

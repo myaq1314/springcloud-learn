@@ -45,7 +45,7 @@ spring:
       transport:
         port: 8791
         dashboard: localhost:8096 # sentinel console地址
-        #client-ip: localhost # 指定本地sentinel客户端的IP
+        #client-ip: localhost # 指定本地sentinel客户端的IP，不要使用localhost
 
     gateway:
       route: # 动态路由配置

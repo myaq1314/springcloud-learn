@@ -76,7 +76,7 @@ public class DegradeRule extends AbstractRule {
     /**
      * 统计窗口时长(秒)
      */
-    private int statisticsTimeWindow;
+    //private int statisticsTimeWindow;
     /**
      * 慢响应时间(毫秒)
      */
@@ -157,14 +157,6 @@ public class DegradeRule extends AbstractRule {
         return this;
     }
     
-    public int getStatisticsTimeWindow() {
-        return statisticsTimeWindow;
-    }
-    
-    public void setStatisticsTimeWindow(int statisticsTimeWindow) {
-        this.statisticsTimeWindow = statisticsTimeWindow;
-    }
-    
     public int getSlowRt() {
         return slowRt;
     }
@@ -192,7 +184,6 @@ public class DegradeRule extends AbstractRule {
             grade == rule.grade &&
             minRequestAmount == rule.minRequestAmount &&
             slowRt == rule.slowRt &&
-            statisticsTimeWindow == rule.statisticsTimeWindow &&
             rtSlowRequestAmount == rule.rtSlowRequestAmount &&
             Double.compare(rule.slowRatioThreshold, slowRatioThreshold) == 0 &&
             statIntervalMs == rule.statIntervalMs;
@@ -200,7 +191,7 @@ public class DegradeRule extends AbstractRule {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), count, timeWindow, grade, minRequestAmount, slowRt, statisticsTimeWindow,
+        return Objects.hash(super.hashCode(), count, timeWindow, grade, minRequestAmount, slowRt,
                 rtSlowRequestAmount, slowRatioThreshold, statIntervalMs);
     }
 
@@ -215,7 +206,6 @@ public class DegradeRule extends AbstractRule {
             ", minRequestAmount=" + minRequestAmount +
             ", slowRatioThreshold=" + slowRatioThreshold +
             ", slowRt=" + slowRt +
-            ", statisticsTimeWindow=" + statisticsTimeWindow +
             ", rtSlowRequestAmount=" + rtSlowRequestAmount +
             ", statIntervalMs=" + statIntervalMs +
             '}';

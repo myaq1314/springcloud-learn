@@ -7,13 +7,20 @@
         <groupId>com.zz</groupId>
         <version>0.1</version>
     </parent>
+    <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>sc-gateway</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>sc-server</artifactId>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
     <modules>
-        <module>sc-gateway-common</module>
-        <module>sc-gateway-new</module>
-        <module>sc-gateway-dubbo</module>
+        <module>sc-service-api</module>
+        <module>sc-service-api-common</module>
+        <module>sc-service</module>
     </modules>
+
 </project>

@@ -50,6 +50,8 @@ public class GlobalResponseFilter implements GlobalFilter, Ordered {
      */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // TODO 增加配置来控制是否获取请求和响应BODY，Fast模式和Complete模式
+
         // 这里是在 ModifyResponseGatewayFilter过滤器调用chain.filter继续调用链
         return modifyResponseBodyGatewayFilterFactory.apply((c -> c.setRewriteFunction(String.class, String.class, (serverWebExchange, body) -> {
 

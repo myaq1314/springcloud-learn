@@ -1,15 +1,40 @@
 package com.zz.scorder;
 
+import com.alibaba.cloud.sentinel.datasource.factorybean.NacosDataSourceFactoryBean;
 import com.alibaba.cloud.sentinel.feign.SentinelFeign;
+import com.alibaba.csp.sentinel.EntryType;
+import com.alibaba.csp.sentinel.context.Context;
+import com.alibaba.csp.sentinel.datasource.AbstractDataSource;
 import com.alibaba.csp.sentinel.init.InitExecutor;
+import com.alibaba.csp.sentinel.node.DefaultNode;
+import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.zz.api.common.config.SentinelMybatisConfig;
 import feign.Feign;
+import feign.InvocationHandlerFactory;
+import feign.Request;
+import feign.Target;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.commons.httpclient.ApacheHttpClientFactory;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.cloud.openfeign.FeignClientFactoryBean;
+import org.springframework.cloud.openfeign.FeignContext;
+import org.springframework.cloud.openfeign.support.FeignHttpClientProperties;
+import org.springframework.core.type.AnnotationMetadata;
+
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Francis.zz on 2018/2/27.
@@ -18,26 +43,76 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  */
 @SpringBootApplication(scanBasePackages = {"com.zz.scservice.fallback", "com.zz.scorder"})
 @EnableDiscoveryClient
-@EnableFeignClients(basePackages = {"com.zz.scservice"})
+@EnableFeignClients(basePackages = {"com.zz.scservice", "com.zz.scorder.feignclient"})
 //@EnableCircuitBreaker
 @ImportAutoConfiguration({SentinelMybatisConfig.class})
 @EnableCaching
 public class ScOrderApplication {
     /**
      * OpenFeign 执行流程分析参考：https://www.cnblogs.com/chiangchou/p/api.html
-     * @EnableFeignClients 注解开启FeignClient扫描，导入{{@link org.springframework.cloud.openfeign.FeignClientsRegistrar} 来扫描所有指定包下所有<code>FeignClient</code>注解类,
+     * @EnableFeignClients 注解开启FeignClient扫描，导入{@link org.springframework.cloud.openfeign.FeignClientsRegistrar}
+     * 来扫描所有指定包下所有带有<code>FeignClient</code>注解的接口,
+     * 通过{@link org.springframework.cloud.openfeign.FeignClientsRegistrar#registerFeignClients} 提取接口的注解信息来注册一个 FeignClientSpecification 的Bean，
+     * 注意这里的 getClientName 方法，用来生成beanName名称。
+     *
      * 并解析FeignClient注解的相关参数，用来生成Target(Feign代理客户端)
      *
-     * Feign客户端默认由{@link org.springframework.cloud.openfeign.FeignClientsConfiguration#feignBuilder}构建
+     * Feign客户端默认由{@link org.springframework.cloud.openfeign.FeignClientsConfiguration.DefaultFeignBuilderConfiguration#feignBuilder}构建
      * sentinel feign由{@link com.alibaba.cloud.sentinel.feign.SentinelFeignAutoConfiguration}构建，覆盖默认构建
      * 超时时间、request client等{@link Feign.Builder#build()}设置.
      * {@link org.springframework.cloud.openfeign.FeignClientFactoryBean#getTarget}里面有创建Client
-     * apache http client创建{@link org.springframework.cloud.openfeign.FeignAutoConfiguration.HttpClientFeignConfiguration#feignClient}，注入{@link feign.Client}
-     * <p>如果使用的client是apach http client，则可以在{@link feign.httpclient.ApacheHttpClient#execute}中查看最终的http client配置</p>
+     * apache http client创建{@link org.springframework.cloud.openfeign.FeignAutoConfiguration.HttpClientFeignConfiguration#feignClient}，
+     * 注入{@link feign.Client}
+     *   > {@link feign.httpclient.ApacheHttpClient#execute}
+     *     > {@link org.apache.http.impl.client.CloseableHttpClient#execute}
+     *       具体使用哪种httpclient由 {@link org.springframework.cloud.openfeign.FeignAutoConfiguration}的配置决定，比如 HttpClientFeignConfiguration
+     *       但是httpclient是由{@link org.springframework.cloud.openfeign.clientconfig.HttpClientFeignConfiguration#createClient} 创建出来的
      *
-     * 其中超时时间有多个地方设置，{@link org.springframework.cloud.openfeign.ribbon.FeignLoadBalancer#execute}中ribbon的超时时间默认是1s，
-     * 可以使用ribbon.ReadTimeout=5000设置全部服务的请求超时时间。
-     * ribbon参数设置参见：{@link com.netflix.client.config.DefaultClientConfigImpl}
+     * <p>feignClient调用http client（或者ok http）完成请求</p>
+     * {@link feign.httpclient.ApacheHttpClient}装饰了{@link HttpClient}的实现类，
+     * 查看{@link org.springframework.cloud.openfeign.loadbalancer.HttpClientFeignLoadBalancerConfiguration#feignClient}
+     * 
+     * <h1>openfeign创建feignClient和解析springmvc参数</h1>
+     * <p>使用了JDK的动态代理，为feign接口创建动态代理。{@link java.lang.reflect.InvocationHandler}和{@link java.lang.reflect.Proxy}</p>
+     *
+     * 使用{@link feign.Target.HardCodedTarget} 作为feign接口的目标代理类，
+     *
+     * > {@link org.springframework.cloud.openfeign.FeignClientsRegistrar#registerFeignClients(AnnotationMetadata, BeanDefinitionRegistry)}
+     *   > {@link FeignClientFactoryBean#getObject()} 创建出接口的代理对象，注册为bean,这里会调用{@link FeignClientFactoryBean#feign}方法设置参数
+     *     > getTarget 这里判断如果url没有值，只有服务名就会调用负载均衡相关的方法
+     *         > DefaultTargeter.target
+     *             > {@link Feign.Builder#target} 这里使用{@link feign.Target.HardCodedTarget}作为target参数
+     *                 > {@link feign.ReflectiveFeign#newInstance}
+     *                     > {@link feign.ReflectiveFeign.ParseHandlersByName#apply} 解析方法或参数的mvc注解
+     *                         > {@link feign.Contract.BaseContract#parseAndValidateMetadata}，解析元数据metadata并缓存
+     *                             > {@link org.springframework.cloud.openfeign.support.SpringMvcContract#processAnnotationOnMethod} 解析方法上的http请求方法注解
+     *                             > {@link org.springframework.cloud.openfeign.support.SpringMvcContract#processAnnotationsOnParameter} 解析方法的参数上的注解，即参数传递方法
+     *                     > factory.create 通过工厂模式创建出用来代理feign接口的代理类。例如{@link feign.ReflectiveFeign.FeignInvocationHandler}
+     *                       {@link feign.ReflectiveFeign}的构造方法中设置InvocationHandlerFactory工厂对象
+     *                          在接入sentinel后，这里的工厂类是{@link }
+     *                     > Proxy.newProxyInstance 使用JDK的动态代理创建出代理类。具体执行时就是传入的代理对象参数，FeignInvocationHandler#invoke
+     *
+     * {@link org.springframework.cloud.openfeign.support.SpringMvcContract#getDefaultAnnotatedArgumentsProcessors} 默认支持参数解析的几种注解处理器
+     *
+     * <h1>timeout超时时间等参数的设置</h1>
+     *  httpclient由{@link org.springframework.cloud.openfeign.clientconfig.HttpClientFeignConfiguration#createClient} 创建，
+     *  这里暂时会用 `feign.httpclient.connection-timeout` 作为连接超时时间
+     *
+     * 创建feignClient时会使用{@link org.springframework.cloud.openfeign.FeignClientProperties#config}的配置`feign.client.config.default.read-timeout`，
+     * 如果没有配置该属性就会使用默认的{@link feign.Request.Options}，分别是10s和60s。
+     *   查看{@link FeignClientFactoryBean#configureFeign}。
+     * {@link feign.httpclient.ApacheHttpClient}装饰了{@link HttpClient}，在调用httpclient前会封装一些参数，超时时间就是在这里赋值的。
+     *   查看{@link feign.httpclient.ApacheHttpClient#toHttpUriRequest}。
+     * 因此优先使用`feign.client.config.default.read-timeout`配置的超时时间，如果没有配置，就是默认的10s和60s。
+     * 而`feign.httpclient.connection-timeout`的配置则无效，会被覆盖。
+     *
+     *
+     * <h1>负载均衡<h1/>
+     * 装配类{@link org.springframework.cloud.openfeign.loadbalancer.HttpClientFeignLoadBalancerConfiguration}
+     * 需要引入 LoadBalancer 依赖才会启用
+     * {@link org.springframework.cloud.openfeign.loadbalancer.FeignBlockingLoadBalancerClient#execute(Request, Request.Options)}
+     * 解析服务名获取其实例具体的ip端口信息
+     * spring cloud2020默认不再集成ribbon，改用 LoadBalancer。并且需要手动引入LoadBalancer 依赖才能从注册中心解析服务名实现负载均衡
      *
      * <h1>sentinel-feign代理请求服务的步骤</h1>
      * 1. sentinel{@link com.alibaba.cloud.sentinel.feign.SentinelInvocationHandler#invoke}进行限流、降级等拦截处理
@@ -46,14 +121,65 @@ public class ScOrderApplication {
      * 可以通过实现RequestInterceptor接口自定义一些操作，比如向Header添加参数，修改请求服务ID（多租户定制服务实现）等。
      * 4. {@link feign.SynchronousMethodHandler#executeAndDecode} 执行请求操作
      *
-     * <h1>sentinel降级说明</h1>
-     * 实例化过程：
+     * <h1>sentinel创建代理对象的过程</h1>
      * sentinel feign由{@link com.alibaba.cloud.sentinel.feign.SentinelFeignAutoConfiguration}构建，覆盖默认构建的Feign.Builder
-     * {@link SentinelFeign.Builder#build()}创建SentinelInvocationHandler
-     * SentinelInvocationHandler实现资源降级操作
+     * 需要配置feign.sentinel.enabled=true来启用sentinel的代理
+     *
+     * {@link FeignClientFactoryBean#getObject()} 创建出接口的代理对象
+     * 这时{@link org.springframework.cloud.openfeign.FeignClientFactoryBean#getTarget}的
+     * `Feign.Builder builder = feign(context)`{@link org.springframework.cloud.openfeign.FeignClientFactoryBean#feign}
+     * 从上下文容器中获取到的就是{@link SentinelFeign.Builder#build()}。
+     * 这里还会为Builder对象设置一些参数，比如 capabilities 属性，
+     * {@link feign.Capability} 实现类{@link org.springframework.cloud.openfeign.CachingCapability}，在FeignAutoConfiguration中注册
+     *   > {@link FeignClientFactoryBean#loadBalance}
+     *     > getOptional(context, Client.class) 从上下文容器中获取注册的{@link feign.Client}接口的实现类，
+     *       比如 {@link org.springframework.cloud.openfeign.loadbalancer.FeignBlockingLoadBalancerClient}
+     *       装饰{@link feign.httpclient.ApacheHttpClient}在HttpClientFeignLoadBalancerConfiguration中完成。
+     *       设置feign builder的client属性
+     *     > get(context, Targeter.class) 从上下文容器中获取注册的{@link org.springframework.cloud.openfeign.Targeter}接口的实现类，
+     *       比如{@link org.springframework.cloud.openfeign.DefaultTargeter}
+     *     > targeter.target 执行取到的Targeter实现类对象的tartget方法，{@link org.springframework.cloud.openfeign.DefaultTargeter#target}
+     *       {@link Feign.Builder#target(Target)} 这里的target参数为{@link feign.Target.HardCodedTarget}对象
+     *       > {@link Feign.Builder#build()} 这里对象的一些属性已是sentinel自定义的
+     *         这里很多属性调用了{@link feign.Capability#enrich(Object, List)}方法，意思就是遍历capabilities列表，如果对象中的enrich方法返回值与第一个参数的属性类型相同，就会调用enrich方法封装属性。
+     *         比如{@link org.springframework.cloud.openfeign.CachingCapability#enrich(InvocationHandlerFactory)}
+     *         就会将前面sentinel设置的invocationHandlerFactory属性使用{@link org.springframework.cloud.openfeign.FeignCachingInvocationHandlerFactory}类装饰。
+     *         build返回{@link feign.ReflectiveFeign}对象，该对象的InvocationHandlerFactory工厂类为FeignCachingInvocationHandlerFactory
+     *         > {@link feign.ReflectiveFeign#newInstance(Target)}，这里会解析mvc的注解，查看“openfeign创建feignClient和解析springmvc参数”
+     *           调用工厂方法{@link org.springframework.cloud.openfeign.FeignCachingInvocationHandlerFactory#create(Target, Map)} 创建出InvocationHandler实现类，
+     *           先调用被装饰的sentinel的工厂方法，{@link SentinelFeign.Builder#build()}里面的内部类，
+     *           这里会返回{@link com.alibaba.cloud.sentinel.feign.SentinelInvocationHandler} ，feign接口代理最终会执行到SentinelInvocationHandler#invoke方法。
+     *
+     *           最后创建jdk动态代理类，并返回该对象。feign接口的方法实现执行时就会调用上面创建出来的InvocationHandler类的invoke方法。
+     *
+     * <h2>sentinel的Feign.Builder#build方法</h2>
+     * {@link SentinelFeign.Builder#build()}
+     * 最终还是返回了父类对象{@link Feign.Builder}，
+     * contract属性设置为{@link com.alibaba.cloud.sentinel.feign.SentinelContractHolder}，在{@link feign.ReflectiveFeign.ParseHandlersByName#apply}调用是就会使用到
+     * invocationHandlerFactory 属性设置为自定义的内部类
+     *
+     * <h1>sentinel熔断降级说明</h1>
+     *
+     * 通过{@link com.alibaba.csp.sentinel.spi.SpiLoader}加载指定类
+     *   > 加载{@link com.alibaba.csp.sentinel.slots.DefaultSlotChainBuilder}
+     *     > 加载com.alibaba.csp.sentinel.slotchain.ProcessorSlot文件中的类，放入{@link com.alibaba.csp.sentinel.slotchain.ProcessorSlot}的调用链中
+     *
+     * `SentinelInvocationHandler`代理请求方法
      * 1. 如果实现了fallback，那么只要请求服务报错就会执行fallback的降级方法(不管有没有触发降级配置)
      * @see {@link com.alibaba.cloud.sentinel.feign.SentinelInvocationHandler#invoke}
-     * @see {@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule#passCheck} 降级检查实现，可以通过提取sentinel-core模块
+     *   > SphU.entry 就是调用链条的entry方法，就是spi配置的ProcessorSlot接口实现类的entry方法，一般是预检查，
+     *       还有是否熔断的检查，比如 `AbstractCircuitBreaker`熔断后就校验熔断时长的时间戳，如果熔断了就会直接抛出DegradeException
+     *       > {@link com.alibaba.csp.sentinel.CtSph#entryWithPriority(ResourceWrapper, int, boolean, Object...)}
+     *         捕获到BlockException异常就会调用链条的exit方法
+     *         > 调用链条中ProcessorSlot实现类的entry方法，比如{@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeSlot#entry}
+     *   > 调用原始的被代理的方法，controller类的方法
+     *   > 捕获到异常时判断有没有实现fallback，有就返回fallback的响应信息
+     *   > finally方法会调用链条的exit
+     *     > {@link com.alibaba.csp.sentinel.CtEntry#exitForContext(Context, int, Object...)}
+     *       > 调用链条中ProcessorSlot实现类的exit方法，比如{@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeSlot#exit(Context, ResourceWrapper, int, Object...)}
+     *         记录总数和异常数，判断是否达到熔断阈值等操作
+     *
+     *
      * 2. RT配置：同1s内的请求数大于5({@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule#rtSlowRequestAmount})
      *    且平均响应时间大于阀值则在接下来的时间窗口触发熔断降级。
      * 其余规则配置具体参考：
@@ -101,12 +227,24 @@ public class ScOrderApplication {
      * 实际metric数据来源就是从sentinel的metric日志文件中读取的。
      * <p>如果需要新增CommandHandler实现，则需要在SPI文件com.alibaba.csp.sentinel.command.CommandHandler中注册CommandHandler实现类才会生效。</p>
      *
-     * <h1>动态规则</h1>
-     * 参考{@link com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource} nacos数据源属性
-     * {@link com.alibaba.cloud.sentinel.custom.SentinelDataSourceHandler} 注册动态数据源Bean
-     * {@link com.alibaba.cloud.sentinel.datasource.config.AbstractDataSourceProperties#postRegister} 注册数据源
+     * <h1>nacos动态规则</h1>
+     * {@link com.alibaba.cloud.sentinel.SentinelProperties}注入 datasource 属性(即spring.cloud.sentinel.datasource属性配置)
+     *   时自动初始化{@link com.alibaba.cloud.sentinel.datasource.config.NacosDataSourceProperties}或别的属性类，
+     *   然后通过{@link NacosDataSourceFactoryBean#getObject()} 创建 {@link com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource} nacos数据源属性
+     * 创建datasource的操作在{@link com.alibaba.cloud.sentinel.custom.SentinelDataSourceHandler#registerBean}
+     *
+     * 通过{@link com.alibaba.cloud.sentinel.datasource.config.AbstractDataSourceProperties#postRegister(AbstractDataSource)}
+     *   注册配置数据监听器，监听nacos等配置中心的数据改变。
+     * 比如降级的配置就存放在{@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager#circuitBreakers}静态属性中。
+     *   > {@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager.RulePropertyListener#buildCircuitBreakers} 通过配置的参数创建`CircuitBreaker`并缓存，
+     *     熔断判断是根据资源名取出缓存。
      *
      * <h1>规则配置说明</h1>
+     * 资源名：
+     * {@link com.alibaba.cloud.sentinel.feign.SentinelInvocationHandler#invoke(Object, Method, Object[])}
+     * <code>String resourceName = methodMetadata.template().method().toUpperCase()
+     *                      + ":" + hardCodedTarget.url() + methodMetadata.template().path();</code>
+     *
      * 例如有如下的接口树：
      * <code>
      *     /createOrder

@@ -90,7 +90,7 @@ public class DegradeRuleEntity implements RuleEntity {
         entity.setCount(rule.getCount());
         entity.setTimeWindow(rule.getTimeWindow());
         entity.setGrade(rule.getGrade());
-        Object[] intervalSecResult = parseIntervalSec(rule.getStatisticsTimeWindow());
+        Object[] intervalSecResult = parseIntervalSec(rule.getStatIntervalMs() / 1000);
         entity.setStatisticsTimeWindow((Integer) intervalSecResult[0]);
         entity.setIntervalUnit((Integer) intervalSecResult[1]);
         entity.setMinRequestAmount(rule.getMinRequestAmount());
@@ -250,7 +250,7 @@ public class DegradeRuleEntity implements RuleEntity {
         rule.setCount(count);
         rule.setTimeWindow(timeWindow);
         rule.setGrade(grade);
-        rule.setStatisticsTimeWindow(calIntervalSec(statisticsTimeWindow, intervalUnit));
+        rule.setStatIntervalMs(calIntervalSec(statisticsTimeWindow, intervalUnit) * 1000);
         rule.setSlowRt(slowRt);
         if (minRequestAmount != null) {
             rule.setMinRequestAmount(minRequestAmount);

@@ -9,6 +9,7 @@ import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.Map;
 
@@ -22,6 +23,11 @@ import java.util.Map;
  */
 @Slf4j
 public class MetaDataGenericHandler implements DubboMetaDataHandler<DubboApiMetaData> {
+    @PostConstruct
+    public void init() {
+        System.out.println("MetaDataGenericHandler exec...");
+    }
+
     private static final Map<String, ReferenceConfig<GenericService>> GENERIC_SERVICE_CACHE = Maps.newConcurrentMap();
 
     private static Map<String, ReferenceConfig<GenericService>> getCache() {

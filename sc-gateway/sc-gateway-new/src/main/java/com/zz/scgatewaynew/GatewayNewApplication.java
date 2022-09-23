@@ -55,14 +55,14 @@ import java.util.function.Supplier;
 @RestController
 @EnableDiscoveryClient
 @Slf4j
-//@DubboGatewayScanner(basePackages = {"com.zz.api.order"})
 public class GatewayNewApplication {
     /**
      * <h1>sentinel控制台交互</h1>
      * <h2>sentinel客户端向sentinel-console上报心跳</h2>
      * 1. 通过{@link com.alibaba.csp.sentinel.Env}和{@link com.alibaba.csp.sentinel.cluster.ClusterStateManager} 调用 {@link InitExecutor#doInit}
      *    来初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类。
-     * Env在sentinel过滤器中才会被调用，因此上报心跳是延迟的，等网关成功路由才会上报，这会让sentinel-console收集metric的起始时间大于第一次记录metric的时间(尽验证，这里不会有影响，而且提前调用InitExecutor.doInit();会导致无法初始化appType)；
+     * Env在sentinel过滤器中才会被调用，因此上报心跳是延迟的，等网关成功路由才会上报，
+     * 这会让sentinel-console收集metric的起始时间大于第一次记录metric的时间(经验证，这里不会有影响，而且提前调用InitExecutor.doInit();会导致无法初始化appType)；
      * 还有就是由于FlowRuleManager也是在第一次路由时加载，导致的MetricTimerListener中的MetricWriter也是延迟创建，
      * 从而导致第一次write metric时会走`else if (second == lastSecond) {`逻辑，该逻辑不会写入位置信息到idx文件，这样就会导致这条metric数据无法被MetricSearcher读取到。
      * 解决方法：参考{@link com.zz.scgatewaynew.config.SpringStartCallback#run(ApplicationArguments)}中的调用
@@ -217,6 +217,7 @@ public class GatewayNewApplication {
      *
      *
      * 3）转发请求的过滤器一般优先级最低，最后执行。比如：
+     * {@link org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter} 负载均衡，需要引入loadbalancer依赖
      * {@link org.springframework.cloud.gateway.filter.NettyRoutingFilter} 这里会调用exchange.getAttributes().put(CLIENT_RESPONSE_CONN_ATTR, connection);把连接放入缓存，连接中可以拿到响应
      * {@link org.springframework.cloud.gateway.filter.ForwardRoutingFilter}
      * {@link org.springframework.cloud.gateway.filter.WebClientHttpRoutingFilter}
@@ -386,7 +387,7 @@ public class GatewayNewApplication {
                     )*/
                     //.route("direct", p -> p.path("/direct").uri("dubbo://172.16.81.10"))
                     //.route("http", p -> p.path("/getInfo").uri("http://172.16.80.160:9094"))
-                    //.route("http2", p -> p.path("/dubbo-demo/**").uri("http://localhost:8088"))
+                    .route("sc-order", p -> p.path("/sc-order/**").uri("lb://sc-order"))
                     //.route("dispatcher", p -> p.path("/sptsm/dispacher").uri("http://172.16.80.134:8088"))
                     .build().getRoutes().doOnNext(route -> log.info("注册default路由id:" + route.getId()));
         };

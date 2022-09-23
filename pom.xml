@@ -208,6 +208,12 @@
                 <artifactId>log4j-spring-boot</artifactId>
                 <version>${log4j2.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-registry-prometheus</artifactId>
+                <version>1.9.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <!--<distributionManagement>
@@ -262,12 +268,10 @@
 
     <modules>
         <module>sc-order</module>
-        <module>sc-service</module>
-        <module>sc-service-api</module>
         <module>sc-common</module>
         <module>sc-ops-union</module>
-        <module>sc-service-api-common</module>
         <module>sc-sentinel-core</module>
         <module>sc-gateway</module>
+        <module>sc-server</module>
     </modules>
 </project>

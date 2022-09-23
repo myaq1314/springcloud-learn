@@ -12,13 +12,10 @@ import com.zz.api.common.nacos.entity.DegradeRuleEntity;
 import com.zz.api.common.nacos.entity.FlowRuleEntity;
 import com.zz.api.common.nacos.entity.RuleEntityWrapper;
 import com.zz.sccommon.exception.ErrorCode;
-import feign.Feign;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.web.servlet.HandlerMapping;
 
@@ -39,6 +36,12 @@ import java.util.stream.Collectors;
 @Configuration
 @Slf4j
 public class SentinelConfig {
+
+    @Bean
+    public FeignSpringBeanListener cusPostProcess() {
+        return new FeignSpringBeanListener();
+    }
+
     /**
      * 自定义BlockExceptionHandler.定制限流响应
      *
